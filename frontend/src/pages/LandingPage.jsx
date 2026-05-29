@@ -1,90 +1,145 @@
 import './LandingPage.css'
 
-const features = [
-  { icon: '☕', title: 'Freshly Roasted', desc: 'Every bag roasted to order in Lancefield and dispatched within 48 hours.' },
-  { icon: '🔄', title: 'Flexible Deliveries', desc: 'Weekly, fortnightly, or monthly — pause, skip or swap anytime.' },
-  { icon: '🌱', title: 'Single Origin', desc: 'Traceable beans from small farms. Know exactly where your coffee comes from.' },
+const blends = [
+  { id: 'onesto', name: 'The Onesto', sub: '100% Arabica', desc: 'Colombia · Mexico · Ethiopia · India Arabica', type: 'blend' },
+  { id: 'ipanema', name: 'The Ipanema', sub: '100% Arabica', desc: 'Brazil · Mexico · Sumatra', type: 'blend' },
+  { id: 'llaneros', name: 'The Llaneros', sub: '85% Arabica · 15% Robusta', desc: 'Colombia · Brazil · PNG · India Robusta', type: 'blend' },
+  { id: 'calabrian', name: 'The Calabrian', sub: '80% Arabica · 20% Robusta', desc: 'Brazil · India Arabica · India Robusta', type: 'blend' },
+  { id: 'equinox', name: 'The Equinox', sub: '100% Arabica', desc: 'Seasonal autumn blend', type: 'blend' },
+  { id: 'decaf', name: 'Mexico Decaf', sub: 'Swiss Water Process · Organic', desc: 'Full flavour without the caffeine', type: 'decaf' },
 ]
 
-const testimonials = [
-  { quote: 'The best coffee I\'ve ever had delivered to my door. Rafael\'s roasting is exceptional.', name: 'Sarah M.', suburb: 'Woodend' },
-  { quote: 'Being able to pause when we travel is a game changer. Love the flexibility.', name: 'James T.', suburb: 'Kyneton' },
+const singles = [
+  { id: 'guatemala', name: 'Guatemala Antigua', sub: 'Single Origin', desc: 'Seasonal — rotating every ~3 months', type: 'single' },
+  { id: 'peru', name: 'Peru Aprocassi', sub: 'Single Origin · Organic', desc: 'Seasonal — rotating every ~3 months', type: 'single' },
 ]
 
 export default function LandingPage({ onSubscribe }) {
   return (
     <div className="landing">
 
+      {/* Announcement bar */}
+      <div className="announce-bar">
+        We roast to order Thursdays. For guaranteed dispatch/delivery COB Friday, please order by Wednesday 5pm.
+      </div>
+
       {/* Nav */}
       <nav className="landing-nav">
         <div className="nav-logo">
-          <span className="logo-mark">RC</span>
-          <span className="logo-text">Rafael's Coffee</span>
+          <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="logo-img" />
         </div>
-        <button className="btn-primary" onClick={onSubscribe}>Subscribe Now</button>
+        <div className="nav-center">
+          <span className="nav-tagline">Artisan Coffee of the Macedon Ranges</span>
+        </div>
+        <button className="btn-primary" onClick={onSubscribe}>Subscribe</button>
       </nav>
 
       {/* Hero */}
       <section className="hero">
         <div className="hero-content">
-          <div className="hero-eyebrow">Lancefield, Victoria · Est. 2018</div>
+          <div className="hero-eyebrow">Established 2012 · Lancefield, Victoria</div>
           <h1 className="hero-title">
-            Coffee worth<br />
-            <em>looking forward to</em>
+            SPECIALTY<br />
+            GRADE BEANS<br />
+            <em>delivered fresh</em>
           </h1>
           <p className="hero-subtitle">
-            A weekly ritual. Freshly roasted single-origin beans, delivered to your door on your schedule. Cancel anytime.
+            Small batch, freshly roasted to order. Subscribe and receive Rafael's Coffee on your schedule — fortnightly, three-weekly or monthly.
           </p>
           <div className="hero-actions">
-            <button className="btn-primary hero-cta" onClick={onSubscribe}>
-              Start Your Subscription →
-            </button>
-            <span className="hero-note">From $18 / delivery · No lock-in</span>
+            <button className="btn-primary hero-cta" onClick={onSubscribe}>Start Your Subscription</button>
+            <span className="hero-note">From $18 · No lock-in · Pause anytime</span>
           </div>
         </div>
         <div className="hero-visual">
-          <div className="hero-card">
-            <div className="hero-card-inner">
-              <div className="bean-graphic">
-                <div className="bean b1" />
-                <div className="bean b2" />
-                <div className="bean b3" />
-              </div>
-              <div className="hero-card-label">
-                <span className="card-roast">Medium Roast</span>
-                <span className="card-origin">Ethiopia Yirgacheffe</span>
-                <span className="card-notes">Blueberry · Jasmine · Dark Chocolate</span>
-              </div>
+          <div className="hero-stamp">
+            <div className="stamp-inner">
+              <span>ESTABLISHED</span>
+              <span className="stamp-year">2012</span>
+              <span>MACEDON RANGES</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="features">
-        <div className="features-inner">
-          {features.map(f => (
-            <div className="feature-card" key={f.title}>
-              <span className="feature-icon">{f.icon}</span>
-              <h3 className="feature-title">{f.title}</h3>
-              <p className="feature-desc">{f.desc}</p>
+      {/* Why subscribe */}
+      <section className="why">
+        <div className="why-inner">
+          {[
+            { icon: '☕', title: 'Roasted to Order', desc: 'Every batch roasted Thursdays and dispatched Friday — as fresh as it gets.' },
+            { icon: '🔄', title: 'Flexible Schedule', desc: 'Fortnightly, three-weekly, or monthly. Pause, skip or cancel anytime.' },
+            { icon: '🏆', title: 'Award Winning', desc: 'Winner — Macedon Ranges Business Excellence Awards 2024.' },
+          ].map(f => (
+            <div className="why-card" key={f.title}>
+              <span className="why-icon">{f.icon}</span>
+              <h3 className="why-title">{f.title}</h3>
+              <p className="why-desc">{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
+      {/* Blends */}
+      <section className="products">
+        <div className="products-inner">
+          <div className="section-label">Our Blends</div>
+          <h2 className="section-heading">SUBSCRIBE TO YOUR BLEND</h2>
+          <p className="section-sub">All blends from $18 / 250g · $30 / 500g · $55 / 1kg</p>
+          <div className="product-grid">
+            {blends.map(p => (
+              <div className="product-card" key={p.id}>
+                <div className="product-bag">
+                  <div className="bag-label">
+                    <img src="/rafael-logo.jpg" alt="" className="bag-logo" />
+                    <span className="bag-name">{p.name.toUpperCase()}</span>
+                  </div>
+                </div>
+                <div className="product-info">
+                  <div className="product-type">{p.type === 'decaf' ? 'Decaf' : 'Blend'}</div>
+                  <div className="product-name">{p.name}</div>
+                  <div className="product-sub">{p.sub}</div>
+                  <div className="product-desc">{p.desc}</div>
+                  <div className="product-price">
+                    {p.type === 'decaf' ? 'From $20' : 'From $18'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Single Origins */}
+      <section className="singles">
+        <div className="products-inner">
+          <div className="section-label">Seasonal</div>
+          <h2 className="section-heading">SINGLE ORIGINS</h2>
+          <p className="section-sub">Rotating seasonal selections · From $20 / 250g · $35 / 500g · $60 / 1kg</p>
+          <div className="singles-grid">
+            {singles.map(p => (
+              <div className="single-card" key={p.id}>
+                <div className="single-name">{p.name}</div>
+                <div className="single-sub">{p.sub}</div>
+                <div className="single-desc">{p.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
-      <section className="how-it-works">
-        <div className="section-inner">
-          <h2 className="section-title">How it works</h2>
+      <section className="how">
+        <div className="how-inner">
+          <div className="section-label light">Simple</div>
+          <h2 className="section-heading light">HOW IT WORKS</h2>
           <div className="steps">
             {[
-              { n: '01', title: 'Choose your coffee', desc: 'Browse our single-origin range and pick your roast.' },
-              { n: '02', title: 'Set your frequency', desc: 'Weekly, fortnightly, or monthly — whatever suits you.' },
-              { n: '03', title: 'We roast & deliver', desc: 'Fresh beans dispatched straight to your door.' },
+              { n: '01', title: 'Choose Your Coffee', desc: 'Pick your blend or single origin, your bag size, and how often you want it.' },
+              { n: '02', title: 'We Roast Thursday', desc: 'Your order is freshly roasted to order every Thursday in Lancefield.' },
+              { n: '03', title: 'Delivered Friday', desc: 'Dispatched COB Friday, arriving at your door ready to brew.' },
             ].map(s => (
               <div className="step" key={s.n}>
-                <span className="step-number">{s.n}</span>
+                <span className="step-n">{s.n}</span>
                 <h4 className="step-title">{s.title}</h4>
                 <p className="step-desc">{s.desc}</p>
               </div>
@@ -93,38 +148,28 @@ export default function LandingPage({ onSubscribe }) {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="testimonials">
-        <div className="section-inner">
-          <h2 className="section-title">What our subscribers say</h2>
-          <div className="testimonial-grid">
-            {testimonials.map(t => (
-              <div className="testimonial" key={t.name}>
-                <p className="testimonial-quote">"{t.quote}"</p>
-                <div className="testimonial-author">
-                  <span className="author-name">{t.name}</span>
-                  <span className="author-suburb">{t.suburb}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="bottom-cta">
-        <div className="section-inner cta-inner">
-          <h2 className="cta-title">Ready to start your ritual?</h2>
-          <p className="cta-subtitle">Join subscribers across Central Victoria getting fresh coffee every delivery.</p>
-          <button className="btn-primary" onClick={onSubscribe}>Subscribe Now →</button>
+      <section className="cta-section">
+        <div className="cta-inner">
+          <div className="section-label">Start Today</div>
+          <h2 className="cta-heading">FRESH COFFEE.<br />YOUR SCHEDULE.</h2>
+          <button className="btn-primary cta-btn" onClick={onSubscribe}>Subscribe Now</button>
+          <p className="cta-note">No lock-in contract · Pause or cancel anytime · Roasted to order</p>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="footer">
         <div className="footer-inner">
-          <span>© 2026 Rafael's Coffee · Lancefield, VIC</span>
-          <span>rafaelscoffee.com.au</span>
+          <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="footer-logo" />
+          <div className="footer-links">
+            <a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer">rafaelscoffee.com.au</a>
+            <span>·</span>
+            <span>Lancefield, VIC</span>
+            <span>·</span>
+            <span>Est. 2012</span>
+          </div>
+          <span className="footer-copy">© 2026 Rafael's Coffee</span>
         </div>
       </footer>
 

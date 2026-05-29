@@ -5,7 +5,6 @@ import './App.css'
 
 export default function App() {
   const [page, setPage] = useState('home')
-
   return (
     <div className="app">
       {page === 'home' && <LandingPage onSubscribe={() => setPage('subscribe')} />}

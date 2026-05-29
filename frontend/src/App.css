@@ -1,87 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500&family=Playfair+Display:ital@0;1&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --cream: #FAF6F0;
-  --warm-white: #FFFDF9;
-  --espresso: #1C0F0A;
-  --brown: #3D1F12;
-  --rust: #B84A2E;
-  --rust-light: #D4603F;
-  --gold: #C8963E;
-  --gold-light: #E8B85A;
-  --stone: #8C7B6B;
-  --stone-light: #C4B5A5;
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'DM Sans', system-ui, sans-serif;
-  --radius: 4px;
-  --radius-lg: 12px;
-  --shadow: 0 2px 20px rgba(28,15,10,0.08);
-  --shadow-lg: 0 8px 40px rgba(28,15,10,0.15);
+  --red: #8B1A1A;
+  --red-light: #A52020;
+  --stone: #E8E0D5;
+  --stone-dark: #D4C9BA;
+  --cream: #F5F0E8;
+  --dark: #1A1008;
+  --brown: #3D2B1A;
+  --mid: #7A6A58;
+  --light-text: #9A8A78;
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-italic: 'Playfair Display', serif;
+  --radius: 2px;
+  --radius-lg: 8px;
+  --shadow: 0 2px 20px rgba(26,16,8,0.1);
+  --shadow-lg: 0 8px 40px rgba(26,16,8,0.18);
   --transition: all 0.25s ease;
 }
 
 html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--font-body);
-  background: var(--cream);
-  color: var(--espresso);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-}
-
+body { font-family: var(--font-body); background: var(--cream); color: var(--dark); -webkit-font-smoothing: antialiased; min-height: 100vh; }
 .app { min-height: 100vh; }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
 .btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--rust);
-  color: white;
-  border: none;
-  padding: 14px 32px;
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red); color: white; border: none;
+  padding: 13px 28px; font-family: var(--font-heading);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; border-radius: var(--radius);
+  cursor: pointer; transition: var(--transition);
 }
-.btn-primary:hover { background: var(--rust-light); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-primary:hover { background: var(--red-light); transform: translateY(-1px); box-shadow: var(--shadow); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--espresso);
-  border: 1.5px solid var(--stone-light);
-  padding: 13px 28px;
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 400;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--dark);
+  border: 1.5px solid rgba(26,16,8,0.25);
+  padding: 12px 24px; font-family: var(--font-heading);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; border-radius: var(--radius);
+  cursor: pointer; transition: var(--transition);
 }
-.btn-secondary:hover { border-color: var(--stone); background: rgba(28,15,10,0.03); }
+.btn-secondary:hover { border-color: var(--dark); background: rgba(26,16,8,0.04); }
 
 .btn-ghost {
-  background: none;
-  border: none;
-  color: var(--stone);
-  font-family: var(--font-body);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 0;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  background: none; border: none; color: var(--mid);
+  font-family: var(--font-heading); font-size: 13px;
+  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer; padding: 8px 0; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 6px;
 }
-.btn-ghost:hover { color: var(--espresso); }
+.btn-ghost:hover { color: var(--dark); }
