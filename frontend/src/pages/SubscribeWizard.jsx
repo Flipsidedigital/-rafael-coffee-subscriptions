@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import "./SubscribeWizard.css";
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://rafael-coffee-subscriptions-production.up.railway.app";
-const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APPLICATION_ID || "";
-const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID || "";
+const API_URL = "https://rafael-coffee-subscriptions-production.up.railway.app";
+const SQUARE_APP_ID = "sandbox-sq0idb-8GE48aYk_8vLJMrbHrr4Ng";
+const SQUARE_LOCATION_ID = "LQ61YWYV3YA78";
 
 const PRODUCTS = [
   {
