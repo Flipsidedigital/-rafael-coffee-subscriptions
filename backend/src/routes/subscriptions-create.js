@@ -84,8 +84,18 @@ router.post('/create', authMiddleware, async (req, res) => {
       },
     });
 
+    console.log('Catalog result:', JSON.stringify(catalogResult, null, 2));
+
     const planId = catalogResult.catalogObject.id;
-    const phaseUid = catalogResult.catalogObject.subscriptionPlanData.phases[0].uid;
+    const planData = catalogResult.catalogObject.subscriptionPlanData;
+    const phases = planData && planData.phases;
+
+    if (!phases || phases.length === 0) {
+      console.error('No phases returned from catalog API:', JSON.stringify(planData));
+      return res.status(500).json({ error: "Failed to create subscription plan" });
+    }
+
+    const phaseUid = phases[0].uid;
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
