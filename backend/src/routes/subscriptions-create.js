@@ -131,7 +131,7 @@ router.post('/create', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('Subscription creation error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     if (err.errors) return res.status(400).json({ error: err.errors.map(function(e) { return e.detail; }).join(', ') });
-    res.status(500).json({ error: "Failed to create subscription" });
+    res.status(500).json({ error: "Failed to create subscription", detail: err.message, body: err.body });
   }
 });
 
