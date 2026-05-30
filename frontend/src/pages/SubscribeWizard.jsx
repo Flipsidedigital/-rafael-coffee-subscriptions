@@ -142,21 +142,7 @@ function SquareCardForm({ tokenizeRef, submitting }) {
           SQUARE_APP_ID,
           SQUARE_LOCATION_ID,
         );
-        const card = await payments.card({
-          style: {
-            input: {
-              fontFamily: "Barlow, sans-serif",
-              fontSize: "15px",
-              color: "#262626",
-            },
-            ".input-container": {
-              borderColor: "rgba(38,38,38,0.15)",
-              borderRadius: "2px",
-            },
-            ".input-container.is-focus": { borderColor: "#402020" },
-            ".input-container.is-error": { borderColor: "#c0392b" },
-          },
-        });
+        const card = await payments.card();
         await card.attach("#square-card-element");
         cardInstanceRef.current = card;
         setCardReady(true);
