@@ -66,11 +66,13 @@ router.post('/create', authMiddleware, async (req, res) => {
     const cardId = cardResult.card.id;
 
     const planName = "Rafael Coffee " + product_id + " " + quantity_grams + "g " + frequency;
-    const { result: catalogResult } = await squareClient.catalogApi.upsertCatalogObject({
+    const planKey = "#plan_" + product_id + "_" + quantity_grams + "_" + frequency;
+
+    const upsertBody = {
       idempotencyKey: uuidv4(),
       object: {
         type: "SUBSCRIPTION_PLAN",
-        id: "#plan_" + product_id + "_" + quantity_grams + "_" + frequency,
+        id: planKey,
         subscriptionPlanData: {
           name: planName,
           phases: [{
@@ -82,15 +84,24 @@ router.post('/create', authMiddleware, async (req, res) => {
           }],
         },
       },
-    });
+    };
 
+    const { result: catalogResult } = await squareClient.catalogApi.upsertCatalogObject(upsertBody);
 
-    const planId = catalogResult.catalogObject.id;
-    const planData = catalogResult.catalogObject.subscriptionPlanData;
-    const phases = planData && planData.phases;
+    const catalogObj = catalogResult.catalogObject;
+    console.log('Catalog object type:', catalogObj.type);
+    console.log('Catalog object keys:', Object.keys(catalogObj));
+
+    const planId = catalogObj.id;
+
+    const planVariationData = catalogObj.subscriptionPlanData || catalogObj.subscriptionPlanVariationData;
+    console.log('Plan variation data keys:', planVariationData ? Object.keys(planVariationData) : 'undefined');
+
+    const phases = planVariationData && (planVariationData.phases || planVariationData.subscriptionPlanPhases);
+    console.log('Phases:', phases ? phases.length : 'undefined');
 
     if (!phases || phases.length === 0) {
-      return res.status(500).json({ error: "Failed to create subscription plan" });
+      return res.status(500).json({ error: "Failed to create subscription plan", detail: "No phases returned", catalogObj: JSON.stringify(Object.keys(catalogObj)) });
     }
 
     const phaseUid = phases[0].uid;
@@ -129,7 +140,8 @@ router.post('/create', authMiddleware, async (req, res) => {
     res.status(201).json({ success: true, subscription_id: squareSub.id });
 
   } catch (err) {
-    console.error('Subscription creation error:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('Subscription creation error message:', err.message);
+    console.error('Subscription creation error body:', err.body);
     if (err.errors) return res.status(400).json({ error: err.errors.map(function(e) { return e.detail; }).join(', ') });
     res.status(500).json({ error: "Failed to create subscription", detail: err.message, body: err.body });
   }
