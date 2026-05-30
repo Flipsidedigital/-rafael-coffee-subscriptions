@@ -66,7 +66,7 @@ export default function SubscribeWizard({ onBack }) {
     return (
       <div className="wizard">
         <div className="wizard-success">
-          <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="success-logo" />
+          <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="success-logo" />
           <h2 className="success-title">YOU'RE SUBSCRIBED!</h2>
           <p className="success-msg">
             Welcome to the Rafael's Coffee family. Your first bag of <strong>{selectedProduct?.name}</strong> will be freshly roasted and dispatched this Thursday.
@@ -83,7 +83,7 @@ export default function SubscribeWizard({ onBack }) {
       {/* Header */}
       <div className="wizard-header">
         <button className="btn-ghost" onClick={onBack}>← Back</button>
-        <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="wizard-logo-img" />
+        <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="wizard-logo-img" />
         <div className="wizard-steps-indicator">
           {[1,2,3].map(s => (
             <div key={s} className={`step-dot ${step === s ? 'active' : step > s ? 'done' : ''}`} />

@@ -26,7 +26,7 @@ export default function LandingPage({ onSubscribe }) {
       {/* Nav */}
       <nav className="landing-nav">
         <div className="nav-logo">
-          <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="logo-img" />
+          <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="logo-img" />
         </div>
         <div className="nav-center">
           <span className="nav-tagline">Artisan Coffee of the Macedon Ranges</span>
@@ -52,13 +52,7 @@ export default function LandingPage({ onSubscribe }) {
           </div>
         </div>
         <div className="hero-visual">
-          <div className="hero-stamp">
-            <div className="stamp-inner">
-              <span>ESTABLISHED</span>
-              <span className="stamp-year">2012</span>
-              <span>MACEDON RANGES</span>
-            </div>
-          </div>
+          <img src="/Rafaels_Coffee_logo-rnd.png" alt="Rafael's Coffee" className="hero-round-logo" />
         </div>
       </section>
 
@@ -90,7 +84,7 @@ export default function LandingPage({ onSubscribe }) {
               <div className="product-card" key={p.id}>
                 <div className="product-bag">
                   <div className="bag-label">
-                    <img src="/rafael-logo.jpg" alt="" className="bag-logo" />
+                    <img src="/Rafaels_Coffee_logo-rnd.png" alt="" className="bag-logo" />
                     <span className="bag-name">{p.name.toUpperCase()}</span>
                   </div>
                 </div>
@@ -161,7 +155,7 @@ export default function LandingPage({ onSubscribe }) {
       {/* Footer */}
       <footer className="footer">
         <div className="footer-inner">
-          <img src="/rafael-logo.jpg" alt="Rafael's Coffee" className="footer-logo" />
+          <img src="/Rafaels_Coffee_logo-rnd.png" alt="Rafael's Coffee" className="footer-logo" />
           <div className="footer-links">
             <a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer">rafaelscoffee.com.au</a>
             <span>·</span>

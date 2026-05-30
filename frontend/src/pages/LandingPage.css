@@ -187,3 +187,20 @@
   .steps { grid-template-columns: 1fr; gap: 32px; }
   .footer { padding: 32px 20px; }
 }
+
+/* Updated logo styles */
+.logo-img { height: 70px; width: auto; }
+
+/* Hero round logo */
+.hero-round-logo {
+  width: 320px; height: 320px;
+  object-fit: contain;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.4));
+}
+
+/* Bag logo - round stamp on dark bag */
+.bag-logo { height: 36px; width: 36px; object-fit: contain; }
+
+/* Footer logo */
+.footer-logo { height: 80px; width: auto; opacity: 0.75; }
