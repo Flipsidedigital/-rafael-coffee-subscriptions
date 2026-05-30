@@ -142,7 +142,7 @@ function SquareCardForm({ tokenizeRef, submitting }) {
           SQUARE_APP_ID,
           SQUARE_LOCATION_ID,
         );
-        const card = await payments.card();
+        const card = await payments.card({ postalCode: false });
         await card.attach("#square-card-element");
         cardInstanceRef.current = card;
         setCardReady(true);
