@@ -220,20 +220,34 @@ export default function SubscribeWizard({ onBack }) {
       }
       const cardToken = result.token;
 
+      const tempPassword = crypto.randomUUID();
       const registerRes = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: details.email,
-          password: crypto.randomUUID(),
+          password: tempPassword,
           first_name: details.firstName,
           last_name: details.lastName,
           phone: details.phone || null,
         }),
       });
-      const authData = await registerRes.json();
+      let authData = await registerRes.json();
+      if (!authData.token && registerRes.status === 409) {
+        const loginRes = await fetch(`${API_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: details.email,
+            password: tempPassword,
+          }),
+        });
+        authData = await loginRes.json();
+      }
       if (!authData.token)
-        throw new Error(authData.error || "Account creation failed");
+        throw new Error(
+          "Unable to create or access your account. Please try again.",
+        );
 
       const subRes = await fetch(`${API_URL}/api/subscriptions/create`, {
         method: "POST",
