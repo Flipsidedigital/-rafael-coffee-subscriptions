@@ -7,7 +7,7 @@ const router = express.Router();
 
 const FREQUENCY_MAP = {
   'fortnightly': 'EVERY_TWO_WEEKS',
-  'three-weekly': 'EVERY_28_DAYS',
+  'three-weekly': 'EVERY_FOUR_WEEKS',
   'monthly': 'MONTHLY',
 };
 
