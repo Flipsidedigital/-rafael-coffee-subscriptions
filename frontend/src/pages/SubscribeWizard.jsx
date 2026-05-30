@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import "./SubscribeWizard.css";
 
-const API_URL = "https://rafael-coffee-subscriptions-production.up.railway.app";
-const SQUARE_APP_ID = "sandbox-sq0idb-8GE48aYk_8vLJMrbHrr4Ng";
-const SQUARE_LOCATION_ID = "LQ61YWYV3YA78";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://rafael-coffee-subscriptions-production.up.railway.app";
+const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APPLICATION_ID || "";
+const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID || "";
 
 const PRODUCTS = [
   {
@@ -142,7 +144,21 @@ function SquareCardForm({ tokenizeRef, submitting }) {
           SQUARE_APP_ID,
           SQUARE_LOCATION_ID,
         );
-        const card = await payments.card({ postalCode: false });
+        const card = await payments.card({
+          style: {
+            input: {
+              fontFamily: '"Barlow", sans-serif',
+              fontSize: "15px",
+              color: "#262626",
+            },
+            ".input-container": {
+              borderColor: "rgba(38,38,38,0.15)",
+              borderRadius: "2px",
+            },
+            ".input-container.is-focus": { borderColor: "#402020" },
+            ".input-container.is-error": { borderColor: "#c0392b" },
+          },
+        });
         await card.attach("#square-card-element");
         cardInstanceRef.current = card;
         setCardReady(true);
@@ -559,7 +575,7 @@ export default function SubscribeWizard({ onBack }) {
           </div>
         )}
 
-        {step === 3 && (
+        <div style={{ display: step === 3 ? "block" : "none" }}>
           <div className="wizard-step">
             <div className="step-header">
               <span className="step-label">Step 3 of 3</span>
@@ -645,7 +661,7 @@ export default function SubscribeWizard({ onBack }) {
               delivery. Cancel or pause anytime from your account.
             </p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
