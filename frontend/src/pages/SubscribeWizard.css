@@ -173,3 +173,17 @@
   font-size: 12px; color: var(--light-text);
   display: flex; align-items: center; gap: 4px;
 }
+
+/* Square iframe fix */
+.square-card-element {
+  min-height: 90px !important;
+  padding: 12px !important;
+}
+.square-card-element iframe,
+.sq-card-wrapper {
+  display: block !important;
+  visibility: visible !important;
+}
+.sq-card-wrapper[hidden] {
+  display: block !important;
+}
