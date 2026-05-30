@@ -67,13 +67,30 @@ router.post('/create', authMiddleware, async (req, res) => {
 
     const planName = "Rafael Coffee " + product_id + " " + quantity_grams + "g " + frequency;
     const planKey = "#plan_" + product_id + "_" + quantity_grams + "_" + frequency;
+    const variationKey = "#var_" + product_id + "_" + quantity_grams + "_" + frequency;
 
-    const upsertBody = {
+    const { result: catalogResult } = await squareClient.catalogApi.upsertCatalogObject({
       idempotencyKey: uuidv4(),
       object: {
         type: "SUBSCRIPTION_PLAN",
         id: planKey,
         subscriptionPlanData: {
+          name: planName,
+          eligibleCategoryIds: [],
+          allItems: true,
+        },
+      },
+    });
+
+    const planId = catalogResult.catalogObject.id;
+    console.log('Plan created:', planId);
+
+    const { result: variationResult } = await squareClient.catalogApi.upsertCatalogObject({
+      idempotencyKey: uuidv4(),
+      object: {
+        type: "SUBSCRIPTION_PLAN_VARIATION",
+        id: variationKey,
+        subscriptionPlanVariationData: {
           name: planName,
           phases: [{
             cadence: cadence,
@@ -82,29 +99,13 @@ router.post('/create', authMiddleware, async (req, res) => {
               priceMoney: { amount: priceCents, currency: "AUD" },
             },
           }],
+          subscriptionPlanId: planId,
         },
       },
-    };
+    });
 
-    const { result: catalogResult } = await squareClient.catalogApi.upsertCatalogObject(upsertBody);
-
-    const catalogObj = catalogResult.catalogObject;
-    console.log('Catalog object type:', catalogObj.type);
-    console.log('Catalog object keys:', Object.keys(catalogObj));
-
-    const planId = catalogObj.id;
-
-    const planVariationData = catalogObj.subscriptionPlanData || catalogObj.subscriptionPlanVariationData;
-    console.log('Plan variation data keys:', planVariationData ? Object.keys(planVariationData) : 'undefined');
-
-    const phases = planVariationData && (planVariationData.phases || planVariationData.subscriptionPlanPhases);
-    console.log('Phases:', phases ? phases.length : 'undefined');
-
-    if (!phases || phases.length === 0) {
-      return res.status(500).json({ error: "Failed to create subscription plan", detail: "No phases returned", catalogObj: JSON.stringify(Object.keys(catalogObj)) });
-    }
-
-    const phaseUid = phases[0].uid;
+    const variationId = variationResult.catalogObject.id;
+    console.log('Variation created:', variationId);
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -113,8 +114,7 @@ router.post('/create', authMiddleware, async (req, res) => {
     const { result: subResult } = await squareClient.subscriptionsApi.createSubscription({
       idempotencyKey: uuidv4(),
       locationId: process.env.SQUARE_LOCATION_ID,
-      planId: planId,
-      planVariationId: phaseUid,
+      planVariationId: variationId,
       customerId: squareCustomerId,
       startDate: startDate,
       cardId: cardId,
@@ -122,6 +122,7 @@ router.post('/create', authMiddleware, async (req, res) => {
     });
 
     const squareSub = subResult.subscription;
+    console.log('Subscription created:', squareSub.id);
 
     let productRow = await db.query('SELECT id FROM products WHERE name = $1', [product_id]);
     let productDbId;
@@ -134,7 +135,7 @@ router.post('/create', authMiddleware, async (req, res) => {
 
     await db.query(
       'INSERT INTO subscriptions (customer_id, product_id, square_subscription_id, square_plan_id, status, frequency, quantity_grams, shipping_name, shipping_address_1, shipping_suburb, shipping_state, shipping_postcode) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
-      [customer.id, productDbId, squareSub.id, planId, 'active', frequency, quantity_grams, shipping_name, shipping_address_1, shipping_suburb, shipping_state, shipping_postcode]
+      [customer.id, productDbId, squareSub.id, variationId, 'active', frequency, quantity_grams, shipping_name, shipping_address_1, shipping_suburb, shipping_state, shipping_postcode]
     );
 
     res.status(201).json({ success: true, subscription_id: squareSub.id });
