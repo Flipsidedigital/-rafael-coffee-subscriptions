@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import "./SubscribeWizard.css";
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://rafael-coffee-subscriptions-production.up.railway.app";
-const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APPLICATION_ID || "";
-const SQUARE_LOCATION_ID = import.meta.env.VITE_SQUARE_LOCATION_ID || "";
+const API_URL = "https://rafael-coffee-subscriptions-production.up.railway.app";
+const SQUARE_APP_ID = "sandbox-sq0idb-8GE48aYk_8vLJMrbHrr4Ng";
+const SQUARE_LOCATION_ID = "LQ61YWYV3YA78";
 
 const PRODUCTS = [
   {
@@ -122,77 +120,17 @@ const TYPE_LABELS = { blend: "Blend", single: "Single Origin", decaf: "Decaf" };
 function loadSquareScript() {
   return new Promise((resolve, reject) => {
     if (window.Square) return resolve();
+    const existing = document.querySelector('script[src*="squarecdn"]');
+    if (existing) {
+      existing.onload = resolve;
+      return;
+    }
     const script = document.createElement("script");
     script.src = "https://sandbox.web.squarecdn.com/v1/square.js";
     script.onload = resolve;
     script.onerror = reject;
     document.head.appendChild(script);
   });
-}
-
-function SquareCardForm({ tokenizeRef, submitting }) {
-  const cardInstanceRef = useRef(null);
-  const [cardReady, setCardReady] = useState(false);
-  const [cardError, setCardError] = useState(null);
-
-  useEffect(() => {
-    async function initSquare() {
-      try {
-        await loadSquareScript();
-        if (!window.Square) throw new Error("Square SDK not loaded");
-        const payments = window.Square.payments(
-          SQUARE_APP_ID,
-          SQUARE_LOCATION_ID,
-        );
-        const card = await payments.card({
-          style: {
-            input: {
-              fontFamily: '"Barlow", sans-serif',
-              fontSize: "15px",
-              color: "#262626",
-            },
-            ".input-container": {
-              borderColor: "rgba(38,38,38,0.15)",
-              borderRadius: "2px",
-            },
-            ".input-container.is-focus": { borderColor: "#402020" },
-            ".input-container.is-error": { borderColor: "#c0392b" },
-          },
-        });
-        await card.attach("#square-card-element");
-        cardInstanceRef.current = card;
-        setCardReady(true);
-
-        // Expose tokenize to parent
-        tokenizeRef.current = async () => {
-          const result = await card.tokenize();
-          if (result.status === "OK") return result.token;
-          throw new Error(
-            result.errors?.map((e) => e.message).join(", ") || "Card error",
-          );
-        };
-      } catch (err) {
-        console.error("Square init error:", err);
-        setCardError(
-          "Unable to load payment form. Please refresh and try again.",
-        );
-      }
-    }
-    initSquare();
-    return () => {
-      cardInstanceRef.current?.destroy().catch(console.error);
-    };
-  }, []);
-
-  return (
-    <div className="square-card-wrapper">
-      {cardError && <div className="form-error">{cardError}</div>}
-      <div id="square-card-element" className="square-card-element" />
-      {!cardReady && !cardError && (
-        <div className="card-loading">Loading secure payment form...</div>
-      )}
-    </div>
-  );
 }
 
 export default function SubscribeWizard({ onBack }) {
@@ -216,7 +154,10 @@ export default function SubscribeWizard({ onBack }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
-  const tokenizeRef = useRef(null);
+  const [cardReady, setCardReady] = useState(false);
+  const [cardError, setCardError] = useState(null);
+  const cardRef = useRef(null);
+  const attachedRef = useRef(false);
 
   const selectedProduct = PRODUCTS.find((p) => p.id === selection.product);
   const priceKey =
@@ -238,15 +179,47 @@ export default function SubscribeWizard({ onBack }) {
     details.suburb &&
     details.postcode;
 
+  // Initialise Square card when step 3 becomes active
+  useEffect(() => {
+    if (step !== 3 || attachedRef.current) return;
+
+    async function initCard() {
+      try {
+        await loadSquareScript();
+        if (!window.Square) throw new Error("Square not loaded");
+        const payments = window.Square.payments(
+          SQUARE_APP_ID,
+          SQUARE_LOCATION_ID,
+        );
+        const card = await payments.card();
+        await card.attach("#square-card-element");
+        cardRef.current = card;
+        attachedRef.current = true;
+        setCardReady(true);
+      } catch (err) {
+        console.error("Square error:", err);
+        setCardError(
+          "Unable to load payment form. Please refresh and try again.",
+        );
+      }
+    }
+
+    initCard();
+  }, [step]);
+
   async function handleSubmit() {
     setSubmitting(true);
     setError(null);
     try {
-      if (!tokenizeRef.current)
-        throw new Error("Payment form not ready. Please wait a moment.");
-      const cardToken = await tokenizeRef.current();
+      if (!cardRef.current) throw new Error("Payment form not ready");
+      const result = await cardRef.current.tokenize();
+      if (result.status !== "OK") {
+        throw new Error(
+          result.errors?.map((e) => e.message).join(", ") || "Card error",
+        );
+      }
+      const cardToken = result.token;
 
-      // Register customer
       const registerRes = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -262,7 +235,6 @@ export default function SubscribeWizard({ onBack }) {
       if (!authData.token)
         throw new Error(authData.error || "Account creation failed");
 
-      // Create subscription
       const subRes = await fetch(`${API_URL}/api/subscriptions/create`, {
         method: "POST",
         headers: {
@@ -348,6 +320,7 @@ export default function SubscribeWizard({ onBack }) {
       </div>
 
       <div className="wizard-body">
+        {/* Step 1 */}
         {step === 1 && (
           <div className="wizard-step">
             <div className="step-header">
@@ -452,6 +425,7 @@ export default function SubscribeWizard({ onBack }) {
           </div>
         )}
 
+        {/* Step 2 */}
         {step === 2 && (
           <div className="wizard-step">
             <div className="step-header">
@@ -575,7 +549,8 @@ export default function SubscribeWizard({ onBack }) {
           </div>
         )}
 
-        <div style={{ display: step === 3 ? "block" : "none" }}>
+        {/* Step 3 - always in DOM from step 3 onwards */}
+        {step >= 3 && (
           <div className="wizard-step">
             <div className="step-header">
               <span className="step-label">Step 3 of 3</span>
@@ -628,10 +603,13 @@ export default function SubscribeWizard({ onBack }) {
             </div>
             <div className="payment-section">
               <h4 className="payment-heading">Card Details</h4>
-              <SquareCardForm
-                tokenizeRef={tokenizeRef}
-                submitting={submitting}
-              />
+              {cardError && <div className="form-error">{cardError}</div>}
+              {!cardReady && !cardError && (
+                <div className="card-loading">
+                  Loading secure payment form...
+                </div>
+              )}
+              <div id="square-card-element" className="square-card-element" />
               <p className="payment-secure">
                 🔒 Secured by Square · PCI compliant · Card details never stored
                 on our servers
@@ -649,7 +627,7 @@ export default function SubscribeWizard({ onBack }) {
               <button
                 className="btn-primary"
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || !cardReady}
               >
                 {submitting
                   ? "Processing..."
@@ -661,7 +639,7 @@ export default function SubscribeWizard({ onBack }) {
               delivery. Cancel or pause anytime from your account.
             </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

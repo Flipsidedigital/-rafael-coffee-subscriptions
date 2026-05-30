@@ -1,0 +1,2 @@
+/*
+  Content-Security-Policy: default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https: wss:; frame-src https:; font-src 'self' data: https:; img-src 'self' data: https:;
