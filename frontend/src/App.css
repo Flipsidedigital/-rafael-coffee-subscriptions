@@ -3,13 +3,13 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --red: #8B1A1A;
-  --red-light: #A52020;
-  --stone: #E8E0D5;
-  --stone-dark: #D4C9BA;
-  --cream: #F5F0E8;
-  --dark: #1A1008;
-  --brown: #3D2B1A;
+  --red: #402020;
+  --red-light: #5C2D2D;
+  --stone: #d6d1ca;
+  --stone-dark: #c4bdb5;
+  --cream: #d6d1ca;
+  --dark: #262626;
+  --brown: #402020;
   --mid: #7A6A58;
   --light-text: #9A8A78;
   --font-heading: 'Barlow Condensed', sans-serif;
