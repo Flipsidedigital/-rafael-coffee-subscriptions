@@ -7,22 +7,36 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 // Placeholder email sender - swap for FlipSend when ready
-async function sendMagicLinkEmail(email, magicLink) {
-  // TODO: Replace with FlipSend API call
-  console.log("=== MAGIC LINK EMAIL ===");
-  console.log("To:", email);
-  console.log("Link:", magicLink);
-  console.log("========================");
-  // When FlipSend is ready:
-  // await fetch('https://api.flipsend.com.au/send', {
-  //   method: 'POST',
-  //   headers: { 'Authorization': `Bearer ${process.env.FLIPSEND_API_KEY}` },
-  //   body: JSON.stringify({
-  //     to: email,
-  //     subject: "Your Rafael's Coffee portal link",
-  //     html: `<p>Click here to access your subscription portal:</p><a href="${magicLink}">${magicLink}</a>`
-  //   })
-  // });
+async function sendMagicLinkEmail(email, magicLink, firstName) {
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "onboarding@resend.dev",
+        to: email,
+        subject: "Your Rafael's Coffee portal link",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+            <img src="https://rafael-coffee-subscriptions.vercel.app/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" style="height: 60px; margin-bottom: 24px;" />
+            <h2 style="font-size: 22px; color: #262626; margin-bottom: 12px;">Hi ${firstName || "there"},</h2>
+            <p style="color: #555; line-height: 1.6; margin-bottom: 24px;">Click the button below to access your Rafael's Coffee subscription portal. This link expires in 30 minutes.</p>
+            <a href="${magicLink}" style="display: inline-block; background: #402020; color: white; padding: 14px 28px; text-decoration: none; font-weight: bold; font-size: 15px; border-radius: 2px;">Access My Portal</a>
+            <p style="color: #999; font-size: 13px; margin-top: 24px;">If you didn't request this link, you can safely ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+            <p style="color: #bbb; font-size: 12px;">Rafael's Coffee &middot; Lancefield, Victoria</p>
+          </div>
+        `,
+      }),
+    });
+    const data = await res.json();
+    console.log("Email sent:", data.id || JSON.stringify(data));
+  } catch (err) {
+    console.error("Email send error:", err);
+  }
 }
 
 // POST /api/portal/request-link
@@ -61,7 +75,7 @@ router.post("/request-link", async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const magicLink = `${frontendUrl}/portal?token=${token}`;
 
-    await sendMagicLinkEmail(customer.email, magicLink);
+    await sendMagicLinkEmail(customer.email, magicLink, customer.first_name);
 
     res.json({
       success: true,
