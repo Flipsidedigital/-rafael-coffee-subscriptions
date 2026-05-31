@@ -44,9 +44,10 @@ app.use("/api/subscriptions", require("./routes/subscriptions"));
 app.use("/api/subscriptions", require("./routes/subscriptions-create"));
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
-app.use("/api/admin", require("./routes/admin"));
-app.use("/webhooks/square", require("./webhooks/square"));
 app.use("/api/portal", require("./routes/portal"));
+app.use("/webhooks/square", require("./webhooks/square"));
+const { router: adminRouter } = require("./routes/admin-dashboard");
+app.use("/api/admin", adminRouter);
 
 // ── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

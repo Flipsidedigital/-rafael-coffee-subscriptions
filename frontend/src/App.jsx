@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import LandingPage from './pages/LandingPage'
 import SubscribeWizard from './pages/SubscribeWizard'
 import Portal from './pages/Portal'
+import Admin from './pages/Admin'
 import './App.css'
 
 export default function App() {
@@ -9,9 +10,8 @@ export default function App() {
 
   useEffect(() => {
     const path = window.location.pathname
-    if (path === '/portal' || path.startsWith('/portal')) {
-      setPage('portal')
-    }
+    if (path.startsWith('/admin')) setPage('admin')
+    else if (path.startsWith('/portal')) setPage('portal')
   }, [])
 
   return (
@@ -19,6 +19,7 @@ export default function App() {
       {page === 'home' && <LandingPage onSubscribe={() => setPage('subscribe')} />}
       {page === 'subscribe' && <SubscribeWizard onBack={() => setPage('home')} />}
       {page === 'portal' && <Portal />}
+      {page === 'admin' && <Admin />}
     </div>
   )
 }
