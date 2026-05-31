@@ -46,6 +46,7 @@ app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/webhooks/square", require("./webhooks/square"));
+app.use("/api/portal", require("./routes/portal"));
 
 // ── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
