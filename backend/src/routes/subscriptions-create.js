@@ -83,7 +83,6 @@ router.post('/create', authMiddleware, async (req, res) => {
     });
 
     const planId = catalogResult.catalogObject.id;
-    console.log('Plan created:', planId);
 
     const { result: variationResult } = await squareClient.catalogApi.upsertCatalogObject({
       idempotencyKey: uuidv4(),
@@ -105,7 +104,6 @@ router.post('/create', authMiddleware, async (req, res) => {
     });
 
     const variationId = variationResult.catalogObject.id;
-    console.log('Variation created:', variationId);
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -122,7 +120,6 @@ router.post('/create', authMiddleware, async (req, res) => {
     });
 
     const squareSub = subResult.subscription;
-    console.log('Subscription created:', squareSub.id);
 
     let productRow = await db.query('SELECT id FROM products WHERE name = $1', [product_id]);
     let productDbId;
