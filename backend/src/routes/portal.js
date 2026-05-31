@@ -16,7 +16,7 @@ async function sendMagicLinkEmail(email, magicLink, firstName) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "onboarding@resend.dev",
+        from: "noreply@flipsidedigital.site",
         to: email,
         subject: "Your Rafael's Coffee portal link",
         html: `
