@@ -10,6 +10,8 @@ import {
 } from '../shop/products';
 import { addToCart, cartCount, isSubscriber } from '../shop/cart';
 import { Stars, SectionHeading, CoffeeBag, PriceTag } from '../shop/ui';
+import CartDrawer from '../shop/CartDrawer';
+import Checkout from '../shop/Checkout';
 
 const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 
@@ -17,16 +19,20 @@ const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 export default function Shop() {
   const [path, setPath] = useState(window.location.pathname);
   const [count, setCount] = useState(cartCount());
+  const [cartOpen, setCartOpen] = useState(false);
   const subscriber = isSubscriber();
 
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
     const onCart = () => setCount(cartCount());
+    const onOpen = () => setCartOpen(true);
     window.addEventListener('popstate', onPop);
     window.addEventListener('cart:change', onCart);
+    window.addEventListener('cart:open', onOpen);
     return () => {
       window.removeEventListener('popstate', onPop);
       window.removeEventListener('cart:change', onCart);
+      window.removeEventListener('cart:open', onOpen);
     };
   }, []);
 
@@ -36,19 +42,23 @@ export default function Shop() {
     window.scrollTo({ top: 0 });
   }, []);
 
-  const detailMatch = path.match(/^\/shop\/([^/]+)\/?$/);
+  const isCheckout = /^\/shop\/checkout\/?$/.test(path);
+  const detailMatch = !isCheckout && path.match(/^\/shop\/([^/]+)\/?$/);
   const product = detailMatch ? getProduct(detailMatch[1]) : null;
 
   return (
     <div className="shop-root min-h-screen bg-cream font-body text-ink antialiased">
       <AnnounceBar />
-      <ShopHeader count={count} subscriber={subscriber} navigate={navigate} />
-      {detailMatch ? (
+      <ShopHeader count={count} subscriber={subscriber} navigate={navigate} onOpenCart={() => setCartOpen(true)} />
+      {isCheckout ? (
+        <Checkout navigate={navigate} />
+      ) : detailMatch ? (
         <ProductDetail product={product} subscriber={subscriber} navigate={navigate} />
       ) : (
         <ShopListing subscriber={subscriber} navigate={navigate} />
       )}
       <ShopFooter navigate={navigate} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} navigate={navigate} />
     </div>
   );
 }
@@ -64,7 +74,7 @@ function AnnounceBar() {
   );
 }
 
-function ShopHeader({ count, subscriber, navigate }) {
+function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
   return (
     <header className="sticky top-0 z-40 border-b border-maroon/10 bg-cream/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
@@ -93,7 +103,7 @@ function ShopHeader({ count, subscriber, navigate }) {
           )}
           <button
             type="button"
-            onClick={() => navigate('/shop')}
+            onClick={onOpenCart}
             aria-label={`Cart, ${count} items`}
             className="relative flex items-center gap-2 rounded-full bg-maroon px-4 py-2 font-heading text-xs font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
@@ -253,6 +263,7 @@ function ProductCard({ product, subscriber, navigate }) {
   function onAdd(e) {
     e.stopPropagation();
     addToCart(product);
+    window.dispatchEvent(new Event('cart:open'));
     setAdded(true);
     setTimeout(() => setAdded(false), 1400);
   }
@@ -388,6 +399,7 @@ function ProductDetail({ product, subscriber, navigate }) {
 
   function onAdd() {
     addToCart(product);
+    window.dispatchEvent(new Event('cart:open'));
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
   }

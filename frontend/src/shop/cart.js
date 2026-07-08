@@ -40,6 +40,26 @@ export function cartCount() {
   return getCart().reduce((n, i) => n + i.qty, 0);
 }
 
+export function cartSubtotal() {
+  return getCart().reduce((s, i) => s + i.price * i.qty, 0);
+}
+
+export function setQty(id, qty) {
+  const items = getCart()
+    .map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i))
+    .filter((i) => i.qty > 0);
+  save(items);
+  return items;
+}
+
+export function removeFromCart(id) {
+  save(getCart().filter((i) => i.id !== id));
+}
+
+export function clearCart() {
+  save([]);
+}
+
 // True if a subscriber is logged into the portal (drives the subscriber discount).
 export function isSubscriber() {
   try {

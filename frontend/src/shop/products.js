@@ -15,6 +15,14 @@ export const CATEGORIES = [
 // Automatic discount applied for logged-in subscribers (see E5).
 export const SUBSCRIBER_DISCOUNT = 0.1; // 10%
 
+// Shipping (mirrored server-side in backend/src/routes/orders-oneoff.js).
+export const FREE_SHIPPING_THRESHOLD = 60; // $ subtotal for free shipping
+export const FLAT_SHIPPING = 10; // $ flat rate under the threshold
+
+export function shippingFor(subtotal) {
+  return subtotal <= 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING;
+}
+
 // Each coffee is rendered as a designed "bag" — `accent` is the pack colour.
 export const PRODUCTS = [
   {
