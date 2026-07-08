@@ -31,6 +31,33 @@
   --font-serif: 'Montserrat', sans-serif;
 }
 
+/* Scoped element reset for the shop. Preflight isn't imported (to protect the
+   existing custom-CSS pages), so bare <button>/<input> elements would otherwise
+   show native browser chrome. Scoped to .shop-root and placed in @layer base so
+   Tailwind utility classes (bg-maroon, border, px-*, font-*) still override it. */
+@layer base {
+  .shop-root button {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    cursor: pointer;
+  }
+  .shop-root button:disabled {
+    cursor: not-allowed;
+  }
+  .shop-root input,
+  .shop-root select,
+  .shop-root textarea {
+    font: inherit;
+    color: inherit;
+  }
+}
+
 /* Respect reduced-motion for the shop's transitions/animations. */
 @media (prefers-reduced-motion: reduce) {
   .shop-root * {
