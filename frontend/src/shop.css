@@ -2,23 +2,38 @@
  * Tailwind for the NEW e-commerce pages only.
  * Preflight (Tailwind's global base reset) is intentionally NOT imported so the
  * existing custom-CSS pages (Landing, Wizard, Portal, Admin) are left untouched.
- * We only pull in the theme tokens + utilities.
+ * We only pull in the theme tokens + utilities. The App.css global reset lives
+ * in @layer base so these layered utilities can override it on shop pages.
  */
 @layer theme, base, components, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
 @theme {
-  /* Rafael's Coffee brand palette */
-  --color-maroon: #402020;
+  /* Rafael's Coffee — elevated palette (Macedon Ranges premium roaster) */
+  --color-maroon: #402020; /* brand ink / deep accent */
   --color-maroon-light: #5c2d2d;
-  --color-stone: #d6d1ca;
-  --color-stone-dark: #c4bdb5;
+  --color-espresso: #2a1616; /* near-black warm */
   --color-ink: #262626;
-  --color-mid: #7a6a58;
+  --color-stone: #d6d1ca; /* brand greige */
+  --color-stone-dark: #c4bdb5;
+  --color-cream: #f6f2ec; /* warm page base */
+  --color-porcelain: #fbf9f5; /* card / near-white */
+  --color-brass: #b0895b; /* gold accent — class & warmth */
+  --color-brass-soft: #c8a877;
+  --color-mid: #7a6a58; /* muted secondary text */
   --color-muted: #9a8a78;
 
   /* Fonts (families already loaded via App.css) */
   --font-heading: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+}
+
+/* Respect reduced-motion globally for the shop's transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+  .shop-root * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

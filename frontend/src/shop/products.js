@@ -11,6 +11,7 @@ export const CATEGORIES = [
 // Automatic discount applied for logged-in subscribers (see E5).
 export const SUBSCRIBER_DISCOUNT = 0.1; // 10%
 
+// Each coffee is rendered as a designed "bag" — `accent` is the pack colour.
 export const PRODUCTS = [
   {
     id: 'onesto',
@@ -19,7 +20,10 @@ export const PRODUCTS = [
     sub: '100% Arabica',
     weight: '250g',
     price: 18,
-    blurb: 'A smooth, balanced house blend — chocolate and caramel with a clean finish.',
+    accent: '#402020', // deep maroon
+    rating: 4.9,
+    reviews: 214,
+    blurb: 'A smooth, balanced house blend — chocolate and caramel with a clean, lingering finish.',
     origin: 'Colombia · Mexico · Ethiopia · India Arabica',
     roast: 'Medium',
     notes: ['Milk chocolate', 'Caramel', 'Toasted almond'],
@@ -31,7 +35,10 @@ export const PRODUCTS = [
     sub: '100% Arabica',
     weight: '250g',
     price: 18,
-    blurb: 'Bright and juicy with a soft body — our everyday crowd-pleaser.',
+    accent: '#9a4a2f', // terracotta
+    rating: 4.8,
+    reviews: 168,
+    blurb: 'Bright and juicy with a soft, syrupy body — our everyday crowd-pleaser.',
     origin: 'Brazil · Mexico · Sumatra',
     roast: 'Medium',
     notes: ['Red berry', 'Brown sugar', 'Citrus'],
@@ -43,7 +50,10 @@ export const PRODUCTS = [
     sub: 'Single Origin',
     weight: '250g',
     price: 20,
-    blurb: 'A classic Antigua profile — full-bodied, cocoa-rich with gentle spice.',
+    accent: '#38412f', // deep olive
+    rating: 4.9,
+    reviews: 97,
+    blurb: 'A classic Antigua profile — full-bodied and cocoa-rich with a gentle whisper of spice.',
     origin: 'Antigua, Guatemala',
     roast: 'Medium-dark',
     notes: ['Dark cocoa', 'Baking spice', 'Orange peel'],
@@ -55,7 +65,10 @@ export const PRODUCTS = [
     sub: 'Swiss Water Decaf',
     weight: '250g',
     price: 20,
-    blurb: 'All of the flavour, none of the buzz — sweet, nutty and comforting.',
+    accent: '#33404a', // slate
+    rating: 4.7,
+    reviews: 63,
+    blurb: 'All of the flavour, none of the buzz — sweet, nutty and quietly comforting.',
     origin: 'Chiapas, Mexico',
     roast: 'Medium',
     notes: ['Hazelnut', 'Milk chocolate', 'Maple'],

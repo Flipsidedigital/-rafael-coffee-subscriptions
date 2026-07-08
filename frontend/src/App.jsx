@@ -14,6 +14,7 @@ export default function App() {
     if (path.startsWith('/admin')) setPage('admin')
     else if (path.startsWith('/portal')) setPage('portal')
     else if (path.startsWith('/shop')) setPage('shop')
+    else if (path.startsWith('/subscribe')) setPage('subscribe')
   }, [])
 
   return (
