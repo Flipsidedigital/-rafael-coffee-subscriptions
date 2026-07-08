@@ -31,7 +31,10 @@ export default function LandingPage({ onSubscribe }) {
         <div className="nav-center">
           <span className="nav-tagline">Artisan Coffee of the Macedon Ranges</span>
         </div>
-        <button className="btn-primary" onClick={onSubscribe}>Subscribe</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <a href="/shop" className="btn-ghost">Shop</a>
+          <button className="btn-primary" onClick={onSubscribe}>Subscribe</button>
+        </div>
       </nav>
 
       {/* Hero */}
