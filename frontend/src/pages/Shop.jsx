@@ -74,46 +74,96 @@ function AnnounceBar() {
   );
 }
 
+function MenuIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  );
+}
+function CloseIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
+function CartButton({ count, onOpenCart }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpenCart}
+      aria-label={`Cart, ${count} items`}
+      className="relative flex items-center gap-2 rounded-full bg-maroon px-4 py-2 font-heading text-xs font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+    >
+      Cart
+      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-cream px-1.5 text-[11px] font-bold text-maroon">
+        {count}
+      </span>
+    </button>
+  );
+}
+
 function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const goHome = (e) => { e.preventDefault(); window.location.href = '/'; };
+  const linkCls = 'text-left transition hover:text-maroon';
+
+  const links = (
+    <>
+      <button onClick={() => { setMenuOpen(false); navigate('/shop'); }} className={linkCls}>Coffee</button>
+      <a href="/subscribe" className={linkCls}>Subscribe</a>
+      {/* centered brand — desktop only */}
+      <a href="/" onClick={goHome} className="hidden shrink-0 items-center gap-2.5 lg:flex">
+        <img src={LOGO} alt="Rafael's Coffee" className="h-9 w-9 rounded-full object-contain" />
+        <span className="font-heading text-sm font-semibold uppercase tracking-[0.22em] text-maroon">Rafael's Coffee</span>
+      </a>
+      <a href="/about" className={linkCls}>Our Story</a>
+      <a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer" className={linkCls}>Visit</a>
+    </>
+  );
+
   return (
     <header className="sticky top-0 z-40 border-b border-maroon/10 bg-cream/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-        <a
-          href="/"
-          onClick={(e) => { e.preventDefault(); window.location.href = '/'; }}
-          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-        >
-          <img src={LOGO} alt="Rafael's Coffee" className="h-10 w-10 rounded-full object-contain" />
-          <span className="hidden font-heading text-sm font-semibold uppercase tracking-[0.22em] text-maroon sm:block">
-            Rafael's Coffee
-          </span>
-        </a>
+      <nav className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:flex lg:items-center lg:gap-4">
+        {/* mobile bar: brand + controls */}
+        <div className="flex items-center justify-between lg:hidden">
+          <a href="/" onClick={goHome} className="flex items-center gap-2.5">
+            <img src={LOGO} alt="Rafael's Coffee" className="h-9 w-9 rounded-full object-contain" />
+            <span className="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-maroon">Rafael's Coffee</span>
+          </a>
+          <div className="flex items-center gap-2">
+            <CartButton count={count} onOpenCart={onOpenCart} />
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Toggle menu"
+              aria-expanded={menuOpen}
+              className="flex items-center justify-center rounded-lg border border-maroon/25 p-2 text-maroon transition hover:bg-maroon/5"
+            >
+              {menuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          </div>
+        </div>
 
-        <nav className="hidden items-center gap-9 font-heading text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/65 md:flex">
-          <button onClick={() => navigate('/shop')} className="transition hover:text-maroon">Coffee</button>
-          <a href="/subscribe" className="transition hover:text-maroon">Subscribe</a>
-          <a href="/about" className="transition hover:text-maroon">Our Story</a>
-        </nav>
+        {/* centered links (desktop) / collapsible (mobile) */}
+        <div className={(menuOpen ? 'block' : 'hidden') + ' grow lg:block'}>
+          <div className="flex flex-col gap-4 pt-4 font-heading text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/70 lg:flex-row lg:items-center lg:justify-center lg:gap-12 lg:pt-0">
+            {links}
+          </div>
+        </div>
 
-        <div className="flex items-center gap-3">
+        {/* actions (desktop) */}
+        <div className="hidden items-center gap-3 lg:flex">
           {subscriber && (
-            <span className="hidden items-center gap-1.5 rounded-full border border-brass/40 bg-brass/10 px-3 py-1.5 font-heading text-[11px] font-semibold uppercase tracking-wider text-maroon sm:inline-flex">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brass/40 bg-brass/10 px-3 py-1.5 font-heading text-[11px] font-semibold uppercase tracking-wider text-maroon">
               ★ Subscriber · {Math.round(SUBSCRIBER_DISCOUNT * 100)}% off
             </span>
           )}
-          <button
-            type="button"
-            onClick={onOpenCart}
-            aria-label={`Cart, ${count} items`}
-            className="relative flex items-center gap-2 rounded-full bg-maroon px-4 py-2 font-heading text-xs font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-          >
-            Cart
-            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-cream px-1.5 text-[11px] font-bold text-maroon">
-              {count}
-            </span>
-          </button>
+          <CartButton count={count} onOpenCart={onOpenCart} />
         </div>
-      </div>
+      </nav>
     </header>
   );
 }
