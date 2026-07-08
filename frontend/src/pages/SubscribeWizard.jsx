@@ -168,16 +168,16 @@ export default function SubscribeWizard({ onBack }) {
       <div className="shop-root flex min-h-screen items-center justify-center bg-cream px-4 font-body text-ink antialiased">
         <div className="w-full max-w-lg rounded-3xl border border-maroon/10 bg-porcelain p-10 text-center shadow-xl">
           <img src={LOGO} alt="Rafael's Coffee" className="mx-auto h-20 w-20 rounded-full object-contain" />
-          <Eyebrow className="mt-6">Welcome to the family</Eyebrow>
-          <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon">
-            You're subscribed!
+          <h2 className="mt-6 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon">
+            You're Subscribed!
           </h2>
           <p className="mt-4 leading-relaxed text-ink/80">
-            Your first bag of <strong className="text-maroon">{selectedProduct?.name}</strong> will be
-            freshly roasted and dispatched this Thursday.
+            Welcome to the Rafael's Coffee family. Your first bag of{" "}
+            <strong className="text-maroon">{selectedProduct?.name}</strong> will be freshly roasted and
+            dispatched this Thursday.
           </p>
           <p className="mt-2 text-sm text-mid">Check your email for confirmation and account details.</p>
-          <button className={`${BTN_PRIMARY} mt-8`} onClick={onBack}>Back to the shop</button>
+          <button className={`${BTN_PRIMARY} mt-8`} onClick={onBack}>Back to Home</button>
         </div>
       </div>
     );
@@ -215,7 +215,7 @@ export default function SubscribeWizard({ onBack }) {
             <div className="text-center">
               <Eyebrow>Step 1 of 3</Eyebrow>
               <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
-                Choose your <span className="font-serif font-normal italic text-mid">coffee</span>
+                Choose Your Coffee
               </h2>
               <p className="mt-3 text-mid">All beans roasted to order in Lancefield, Victoria.</p>
             </div>
@@ -251,9 +251,11 @@ export default function SubscribeWizard({ onBack }) {
                         <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-brass text-sm font-bold text-espresso shadow">✓</span>
                       )}
                     </div>
-                    <p className="mt-3 font-heading text-sm font-bold uppercase tracking-tight text-maroon">{p.name}</p>
-                    <p className="text-[11px] text-mid">{TYPE_LABELS[p.type]}</p>
-                    <p className="mt-0.5 font-heading text-sm font-extrabold text-maroon">From ${p.price250}</p>
+                    <p className="mt-3 font-heading text-[10px] font-semibold uppercase tracking-[0.15em] text-brass">{TYPE_LABELS[p.type]}</p>
+                    <p className="font-heading text-sm font-bold uppercase tracking-tight text-maroon">{p.name}</p>
+                    <p className="text-xs text-mid">{p.sub}</p>
+                    <p className="mt-0.5 text-[11px] leading-snug text-ink/60">{p.desc}</p>
+                    <p className="mt-1 font-heading text-sm font-extrabold text-maroon">From ${p.price250}</p>
                   </button>
                 );
               })}
@@ -261,7 +263,7 @@ export default function SubscribeWizard({ onBack }) {
 
             {/* Bag size */}
             <div className="mt-12">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Bag size</h3>
+              <h3 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Bag Size</h3>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {SIZES.map((s) => {
                   const selected = selection.size === s.id;
@@ -284,7 +286,7 @@ export default function SubscribeWizard({ onBack }) {
 
             {/* Frequency */}
             <div className="mt-10">
-              <h3 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Delivery frequency</h3>
+              <h3 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Delivery Frequency</h3>
               <div className="mt-4 space-y-3">
                 {FREQUENCIES.map((f) => {
                   const selected = selection.frequency === f.id;
@@ -338,7 +340,7 @@ export default function SubscribeWizard({ onBack }) {
             <div className="text-center">
               <Eyebrow>Step 2 of 3</Eyebrow>
               <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
-                Your <span className="font-serif font-normal italic text-mid">details</span>
+                Your Details
               </h2>
               <p className="mt-3 text-mid">Where should we deliver your coffee?</p>
             </div>
@@ -407,7 +409,7 @@ export default function SubscribeWizard({ onBack }) {
             <div className="text-center">
               <Eyebrow>Step 3 of 3</Eyebrow>
               <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
-                Review &amp; <span className="font-serif font-normal italic text-mid">pay</span>
+                Review &amp; Pay
               </h2>
               <p className="mt-3 text-mid">Confirm your subscription and enter your payment details.</p>
             </div>
@@ -443,9 +445,9 @@ export default function SubscribeWizard({ onBack }) {
             </div>
 
             <div className="mt-6">
-              <h4 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Card details</h4>
+              <h4 className="font-heading text-sm font-bold uppercase tracking-[0.15em] text-maroon">Card Details</h4>
               {cardError && <p className="mt-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{cardError}</p>}
-              {!cardReady && !cardError && <p className="mt-3 text-sm text-mid">Loading secure payment form…</p>}
+              {!cardReady && !cardError && <p className="mt-3 text-sm text-mid">Loading secure payment form...</p>}
               <div id="square-card-element" className="mt-3 min-h-[52px] rounded-xl border border-maroon/15 bg-white px-3 py-1" />
               <p className="mt-3 text-xs text-mid">
                 🔒 Secured by Square · PCI compliant · Card details never stored on our servers
