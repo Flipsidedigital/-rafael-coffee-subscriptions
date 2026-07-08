@@ -125,8 +125,8 @@ export const PRODUCTS = [
   {
     id: 'decaf',
     category: 'coffee',
-    name: 'Mexico Decaf',
-    sub: 'Swiss Water® Process · Organic',
+    name: 'Mexico Swiss Water® Process Organic Decaf',
+    sub: 'Organic Decaf',
     weight: '250g',
     price: 20,
     accent: '#4a4640',

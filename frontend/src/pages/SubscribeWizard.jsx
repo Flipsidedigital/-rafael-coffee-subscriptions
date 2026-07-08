@@ -15,7 +15,7 @@ const PRODUCTS = [
   { id: "equinox", name: "Old Man Winter", sub: "100% Arabica · Winter blend", desc: "Seasonal 100% Arabica winter blend", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#34424c" },
   { id: "guatemala", name: "Guatemala Antigua", sub: "Single Origin", desc: "Seasonal · rotating every ~3 months", type: "single", price250: 20, price500: 35, price1kg: 60, accent: "#38412f" },
   { id: "peru", name: "Peru Aprocassi Organic", sub: "Single Origin · Organic", desc: "Seasonal · rotating every ~3 months", type: "single", price250: 20, price500: 35, price1kg: 60, accent: "#2f4738" },
-  { id: "decaf", name: "Mexico Decaf", sub: "Swiss Water® Process · Organic", desc: "Full flavour without the caffeine", type: "decaf", price250: 20, price500: 35, price1kg: 60, accent: "#33404a" },
+  { id: "decaf", name: "Mexico Swiss Water® Process Organic Decaf", sub: "Organic Decaf", desc: "Full flavour without the caffeine", type: "decaf", price250: 20, price500: 35, price1kg: 60, accent: "#33404a" },
 ];
 
 const FREQUENCIES = [

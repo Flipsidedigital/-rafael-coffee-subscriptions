@@ -11,7 +11,7 @@ const PRODUCTS = [
   { id: 'equinox', name: 'Old Man Winter', sub: '100% Arabica · Winter blend' },
   { id: 'guatemala', name: 'Guatemala Antigua', sub: 'Single Origin' },
   { id: 'peru', name: 'Peru Aprocassi Organic', sub: 'Single Origin · Organic' },
-  { id: 'decaf', name: 'Mexico Decaf', sub: 'Swiss Water® Process · Organic' },
+  { id: 'decaf', name: 'Mexico Swiss Water® Process Organic Decaf', sub: 'Organic Decaf' },
 ]
 
 // ── Magic Link Request Page ───────────────────────────────────────────────────
