@@ -65,33 +65,19 @@ export function PriceTag({ price, subscriber, large }) {
   return <span className={`font-heading font-extrabold text-maroon ${size}`}>{formatPrice(price)}</span>;
 }
 
-// The "designed bag" — reads as premium packaging instead of an image placeholder.
+// Real product photo (black Rafael's pouch on white). Images live in
+// public/products/<id>.png — the pouch's own white background blends with the
+// white card, so object-contain letterboxing is invisible. Named CoffeeBag for
+// backwards-compat with existing imports across Shop + SubscribeWizard.
 export function CoffeeBag({ product }) {
   return (
-    <div
-      className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl"
-      style={{ background: `linear-gradient(158deg, ${product.accent || '#402020'} 0%, rgba(0,0,0,0.55) 135%)` }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'linear-gradient(115deg, rgba(255,255,255,0.14), transparent 42%)' }}
+    <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-white p-2 shadow-sm">
+      <img
+        src={`/products/${product.id}.png`}
+        alt={product.name}
+        loading="lazy"
+        className="h-full w-full object-contain"
       />
-      <span className="absolute inset-x-0 top-4 text-center font-heading text-[10px] font-semibold uppercase tracking-[0.4em] text-cream/70">
-        Rafael's Coffee
-      </span>
-      <div className="relative px-4 text-center">
-        <span className="mx-auto mb-3 block h-px w-8 bg-brass-soft/80" />
-        <p className="font-serif text-sm italic text-brass-soft">{product.sub}</p>
-        <p className="mt-1 font-heading text-2xl font-extrabold uppercase leading-none tracking-tight text-cream">
-          {product.name}
-        </p>
-        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.3em] text-cream/60">
-          {product.weight ? `${product.weight} · ` : ''}Whole bean
-        </p>
-      </div>
-      <span className="absolute inset-x-0 bottom-4 text-center text-[9px] uppercase tracking-[0.32em] text-cream/45">
-        Macedon Ranges Roastery
-      </span>
     </div>
   );
 }

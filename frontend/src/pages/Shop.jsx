@@ -211,14 +211,14 @@ function Hero({ navigate }) {
         </div>
 
         {/* Bag cluster */}
-        <div className="relative mx-auto hidden h-[420px] w-full max-w-md items-center justify-center lg:flex">
-          <div className="absolute left-2 top-10 w-40 -rotate-6 opacity-90">
+        <div className="relative mx-auto hidden h-[440px] w-full max-w-md items-center justify-center lg:flex">
+          <div className="absolute left-0 top-12 w-40 -rotate-6 drop-shadow-2xl">
             <CoffeeBag product={PRODUCTS[2]} />
           </div>
-          <div className="absolute right-2 top-14 w-40 rotate-6 opacity-90">
+          <div className="absolute right-0 top-16 w-40 rotate-6 drop-shadow-2xl">
             <CoffeeBag product={PRODUCTS[1]} />
           </div>
-          <div className="relative z-10 w-48 drop-shadow-2xl">
+          <div className="relative z-10 w-52 drop-shadow-2xl">
             <CoffeeBag product={PRODUCTS[0]} />
           </div>
         </div>
