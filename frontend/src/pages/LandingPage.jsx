@@ -5,13 +5,13 @@ const blends = [
   { id: 'ipanema', name: 'The Ipanema', sub: '100% Arabica', desc: 'Brazil · Mexico · Sumatra', type: 'blend' },
   { id: 'llaneros', name: 'The Llaneros', sub: '85% Arabica · 15% Robusta', desc: 'Colombia · Brazil · PNG · India Robusta', type: 'blend' },
   { id: 'calabrian', name: 'The Calabrian', sub: '80% Arabica · 20% Robusta', desc: 'Brazil · India Arabica · India Robusta', type: 'blend' },
-  { id: 'equinox', name: 'The Equinox', sub: '100% Arabica', desc: 'Seasonal autumn blend', type: 'blend' },
-  { id: 'decaf', name: 'Mexico Decaf', sub: 'Swiss Water Process · Organic', desc: 'Full flavour without the caffeine', type: 'decaf' },
+  { id: 'equinox', name: 'Old Man Winter', sub: '100% Arabica · Winter blend', desc: 'Seasonal 100% Arabica winter blend', type: 'blend' },
+  { id: 'decaf', name: 'Mexico Decaf', sub: 'Swiss Water® Process · Organic', desc: 'Full flavour without the caffeine', type: 'decaf' },
 ]
 
 const singles = [
   { id: 'guatemala', name: 'Guatemala Antigua', sub: 'Single Origin', desc: 'Seasonal — rotating every ~3 months', type: 'single' },
-  { id: 'peru', name: 'Peru Aprocassi', sub: 'Single Origin · Organic', desc: 'Seasonal — rotating every ~3 months', type: 'single' },
+  { id: 'peru', name: 'Peru Aprocassi Organic', sub: 'Single Origin · Organic', desc: 'Seasonal — rotating every ~3 months', type: 'single' },
 ]
 
 export default function LandingPage({ onSubscribe }) {
