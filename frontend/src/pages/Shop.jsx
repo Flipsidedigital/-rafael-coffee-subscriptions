@@ -56,7 +56,7 @@ export default function Shop() {
 /* =================================================================== Chrome */
 function AnnounceBar() {
   return (
-    <div className="bg-espresso text-cream">
+    <div className="bg-maroon text-cream">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center font-heading text-[11px] font-medium uppercase tracking-[0.28em]">
         Freshly roasted in the Macedon Ranges · Complimentary shipping over $60
       </p>
@@ -66,20 +66,20 @@ function AnnounceBar() {
 
 function ShopHeader({ count, subscriber, navigate }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-maroon/10 bg-cream/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-maroon/10 bg-cream/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
         <a
           href="/"
           onClick={(e) => { e.preventDefault(); window.location.href = '/'; }}
-          className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
-          <img src={LOGO} alt="Rafael's Coffee" className="h-11 w-11 rounded-full object-contain" />
-          <span className="hidden font-heading text-base font-bold uppercase leading-none tracking-[0.2em] text-maroon sm:block">
-            Rafael's<span className="block text-[10px] font-medium tracking-[0.3em] text-mid">Macedon Ranges</span>
+          <img src={LOGO} alt="Rafael's Coffee" className="h-10 w-10 rounded-full object-contain" />
+          <span className="hidden font-heading text-sm font-semibold uppercase tracking-[0.22em] text-maroon sm:block">
+            Rafael's Coffee
           </span>
         </a>
 
-        <nav className="hidden items-center gap-8 font-heading text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 md:flex">
+        <nav className="hidden items-center gap-9 font-heading text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/65 md:flex">
           <button onClick={() => navigate('/shop')} className="transition hover:text-maroon">Coffee</button>
           <a href="/subscribe" className="transition hover:text-maroon">Subscribe</a>
           <a href="/about" className="transition hover:text-maroon">Our Story</a>
@@ -98,7 +98,7 @@ function ShopHeader({ count, subscriber, navigate }) {
             className="relative flex items-center gap-2 rounded-full bg-maroon px-4 py-2 font-heading text-xs font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
             Cart
-            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-brass px-1.5 text-[11px] font-bold text-espresso">
+            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-cream px-1.5 text-[11px] font-bold text-maroon">
               {count}
             </span>
           </button>
@@ -167,24 +167,21 @@ function ShopListing({ subscriber, navigate }) {
 
 function Hero({ navigate }) {
   return (
-    <section className="relative overflow-hidden bg-maroon text-cream">
-      {/* soft radial glow */}
+    <section className="relative overflow-hidden bg-cream">
+      {/* soft warm glow */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-70"
-        style={{ background: 'radial-gradient(120% 80% at 15% 0%, rgba(176,137,91,0.22), transparent 60%)' }}
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(80% 65% at 82% 5%, rgba(124,48,70,0.07), transparent 60%)' }}
       />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
-          <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-brass-soft">
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-brass">
             Lancefield · Victoria
           </p>
-          <h1 className="mt-5 font-heading text-5xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
-            Coffee worth
-            <span className="mt-1 block font-serif text-5xl font-normal italic tracking-normal text-brass-soft sm:text-6xl">
-              slowing down for
-            </span>
+          <h1 className="mt-5 font-heading text-4xl font-bold uppercase leading-[1.08] tracking-[0.01em] text-maroon sm:text-5xl">
+            Coffee worth<br />slowing down for
           </h1>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-cream/75">
+          <p className="mt-6 max-w-md text-base leading-relaxed text-ink/70">
             Roasted by hand in the Macedon Ranges, in small batches, the day it ships.
             Honest beans, ethically sourced, delivered on your rhythm.
           </p>
@@ -192,19 +189,19 @@ function Hero({ navigate }) {
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button
               onClick={() => document.getElementById('coffee')?.scrollIntoView({ behavior: 'smooth' })}
-              className="rounded-full bg-brass px-7 py-3.5 font-heading text-sm font-bold uppercase tracking-wider text-espresso transition hover:bg-brass-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream"
+              className="rounded-full bg-maroon px-7 py-3.5 font-heading text-sm font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               Shop the coffee
             </button>
             <a
               href="/subscribe"
-              className="rounded-full border border-cream/35 px-7 py-3.5 font-heading text-sm font-bold uppercase tracking-wider text-cream transition hover:border-cream hover:bg-cream/5"
+              className="rounded-full border border-maroon/30 px-7 py-3.5 font-heading text-sm font-semibold uppercase tracking-wider text-maroon transition hover:bg-maroon/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
             >
               Start a subscription
             </a>
           </div>
 
-          <div className="mt-8 flex items-center gap-3 text-sm text-cream/70">
+          <div className="mt-8 flex items-center gap-3 text-sm text-mid">
             <Stars value={4.9} />
             <span className="font-heading tracking-wide">4.9 · loved by 500+ locals</span>
           </div>
@@ -271,10 +268,10 @@ function ProductCard({ product, subscriber, navigate }) {
       </button>
 
       <div className="mt-4 flex flex-1 flex-col">
-        <h3 className="font-heading text-lg font-bold uppercase tracking-tight text-maroon">
+        <h3 className="font-heading text-sm font-semibold uppercase leading-snug tracking-[0.03em] text-maroon">
           {product.name}
         </h3>
-        <p className="mt-0.5 text-xs text-mid">{product.sub} · {product.weight}</p>
+        <p className="mt-1 text-xs text-mid">{product.sub} · {product.weight}</p>
         <div className="mt-1.5 flex items-center gap-1.5">
           <Stars value={product.rating} small />
           <span className="text-[11px] text-mid">({product.reviews})</span>
@@ -306,23 +303,22 @@ function SubscriptionTeaser({ navigate }) {
     ['03', 'Delivered on repeat', 'On your rhythm — pause or cancel anytime.'],
   ];
   return (
-    <section className="bg-espresso text-cream">
+    <section className="border-y border-maroon/10 bg-stone/50">
       <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
-          <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-brass-soft">
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-brass">
             Never run out
           </p>
-          <h2 className="mt-4 font-heading text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-5xl">
-            Subscribe &amp; save{' '}
-            <span className="font-serif font-normal italic text-brass-soft">ten percent</span>
+          <h2 className="mt-4 font-heading text-3xl font-bold uppercase leading-tight tracking-[0.02em] text-maroon sm:text-4xl">
+            Subscribe &amp; save ten percent
           </h2>
-          <p className="mt-5 max-w-md text-cream/75">
+          <p className="mt-5 max-w-md text-ink/70">
             The freshest way to drink Rafael's. Delivered fortnightly, three-weekly or monthly —
             you stay in complete control. No lock-in, no fuss.
           </p>
           <a
             href="/subscribe"
-            className="mt-8 inline-block rounded-full bg-brass px-7 py-3.5 font-heading text-sm font-bold uppercase tracking-wider text-espresso transition hover:bg-brass-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream"
+            className="mt-8 inline-block rounded-full bg-maroon px-7 py-3.5 font-heading text-sm font-semibold uppercase tracking-wider text-cream transition hover:bg-maroon-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
           >
             Explore subscriptions
           </a>
@@ -330,12 +326,12 @@ function SubscriptionTeaser({ navigate }) {
 
         <div className="grid gap-5 sm:grid-cols-3">
           {steps.map(([n, title, sub]) => (
-            <div key={n} className="rounded-2xl border border-cream/12 bg-cream/[0.04] p-5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-brass/50 font-serif text-lg italic text-brass-soft">
+            <div key={n} className="rounded-2xl border border-maroon/10 bg-white p-5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-maroon/25 font-heading text-sm font-bold text-maroon">
                 {n}
               </span>
-              <p className="mt-4 font-heading text-base font-bold uppercase tracking-wide">{title}</p>
-              <p className="mt-1.5 text-sm text-cream/65">{sub}</p>
+              <p className="mt-4 font-heading text-sm font-bold uppercase tracking-wide text-maroon">{title}</p>
+              <p className="mt-1.5 text-sm text-mid">{sub}</p>
             </div>
           ))}
         </div>
@@ -359,10 +355,10 @@ function Testimonials() {
         {quotes.map(([quote, name, town]) => (
           <figure key={name} className="flex flex-col rounded-2xl border border-maroon/10 bg-porcelain p-7">
             <Stars value={5} />
-            <blockquote className="mt-4 flex-1 font-serif text-lg italic leading-relaxed text-ink/85">
+            <blockquote className="mt-4 flex-1 text-base leading-relaxed text-ink/80">
               “{quote}”
             </blockquote>
-            <figcaption className="mt-5 font-heading text-sm font-bold uppercase tracking-wider text-maroon">
+            <figcaption className="mt-5 font-heading text-xs font-semibold uppercase tracking-[0.15em] text-maroon">
               {name} <span className="font-medium text-mid">· {town}</span>
             </figcaption>
           </figure>
@@ -416,10 +412,10 @@ function ProductDetail({ product, subscriber, navigate }) {
           <p className="font-heading text-xs font-semibold uppercase tracking-[0.3em] text-brass">
             {product.origin}
           </p>
-          <h1 className="mt-3 font-heading text-5xl font-extrabold uppercase leading-none tracking-tight text-maroon">
+          <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-tight tracking-[0.01em] text-maroon sm:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-2 font-serif text-xl italic text-mid">{product.sub}</p>
+          <p className="mt-2 text-lg text-mid">{product.sub}</p>
 
           <div className="mt-4 flex items-center gap-2">
             <Stars value={product.rating} />
@@ -479,7 +475,7 @@ function ProductDetail({ product, subscriber, navigate }) {
           {/* roaster's note */}
           <div className="mt-8 rounded-2xl bg-porcelain p-6">
             <p className="font-heading text-xs font-semibold uppercase tracking-[0.2em] text-brass">Roaster's note</p>
-            <p className="mt-2 font-serif text-base italic leading-relaxed text-ink/80">
+            <p className="mt-2 text-base leading-relaxed text-ink/75">
               Roasted to order in Lancefield and rested, never rushed — so every bag reaches
               you at its sweetest. Best enjoyed within four weeks of the roast date on the base.
             </p>
@@ -507,9 +503,9 @@ function ComingSoon({ category }) {
       ? 'Mugs, brew gear and Rafael’s merch — thoughtfully chosen, coming soon.'
       : 'Hands-on brewing and barista classes at the roastery — coming soon.';
   return (
-    <div className="rounded-2xl border border-dashed border-maroon/25 bg-porcelain px-6 py-20 text-center">
-      <p className="font-serif text-sm italic text-brass">Just roasting the details</p>
-      <p className="mt-2 font-heading text-3xl font-extrabold uppercase tracking-tight text-maroon">
+    <div className="rounded-2xl border border-dashed border-maroon/25 bg-white px-6 py-20 text-center">
+      <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass">Just roasting the details</p>
+      <p className="mt-3 font-heading text-2xl font-bold uppercase tracking-[0.02em] text-maroon sm:text-3xl">
         {label} — Coming Soon
       </p>
       <p className="mx-auto mt-3 max-w-md text-mid">{copy}</p>
@@ -519,36 +515,36 @@ function ComingSoon({ category }) {
 
 function ShopFooter({ navigate }) {
   return (
-    <footer className="bg-maroon text-cream">
+    <footer className="border-t border-maroon/10 bg-cream">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-3 sm:px-6">
         <div>
           <div className="flex items-center gap-3">
             <img src={LOGO} alt="Rafael's Coffee" className="h-12 w-12 rounded-full object-contain" />
-            <span className="font-heading text-lg font-bold uppercase tracking-[0.2em]">Rafael's Coffee</span>
+            <span className="font-heading text-base font-semibold uppercase tracking-[0.2em] text-maroon">Rafael's Coffee</span>
           </div>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream/70">
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-mid">
             Small-batch specialty coffee, roasted by hand in Lancefield in the heart of the
             Macedon Ranges.
           </p>
         </div>
         <div>
-          <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass-soft">Shop</p>
-          <ul className="mt-4 space-y-2.5 text-sm text-cream/75">
-            <li><button onClick={() => navigate('/shop')} className="transition hover:text-cream">All coffee</button></li>
-            <li><a href="/subscribe" className="transition hover:text-cream">Subscriptions</a></li>
-            <li><a href="/portal" className="transition hover:text-cream">Manage my account</a></li>
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass">Shop</p>
+          <ul className="mt-4 space-y-2.5 text-sm text-ink/70">
+            <li><button onClick={() => navigate('/shop')} className="transition hover:text-maroon">All coffee</button></li>
+            <li><a href="/subscribe" className="transition hover:text-maroon">Subscriptions</a></li>
+            <li><a href="/portal" className="transition hover:text-maroon">Manage my account</a></li>
           </ul>
         </div>
         <div>
-          <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass-soft">Visit</p>
-          <ul className="mt-4 space-y-2.5 text-sm text-cream/75">
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass">Visit</p>
+          <ul className="mt-4 space-y-2.5 text-sm text-ink/70">
             <li>Lancefield, VIC 3435</li>
-            <li><a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer" className="underline decoration-brass underline-offset-2 hover:text-cream">rafaelscoffee.com.au</a></li>
+            <li><a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer" className="text-maroon underline decoration-maroon/40 underline-offset-2 hover:decoration-maroon">rafaelscoffee.com.au</a></li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-cream/12">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-center font-heading text-[11px] uppercase tracking-[0.28em] text-cream/50 sm:px-6">
+      <div className="border-t border-maroon/10">
+        <p className="mx-auto max-w-6xl px-4 py-5 text-center font-heading text-[11px] uppercase tracking-[0.28em] text-mid sm:px-6">
           © Rafael's Coffee · Macedon Ranges Roastery
         </p>
       </div>

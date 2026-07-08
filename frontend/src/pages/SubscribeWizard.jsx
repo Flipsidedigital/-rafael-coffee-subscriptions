@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "../shop.css";
-import { CoffeeBag, Stars, Eyebrow, BTN_PRIMARY, BTN_BRASS, BTN_OUTLINE, BTN_GHOST, FIELD, LABEL } from "../shop/ui";
+import { CoffeeBag, Stars, Eyebrow, BTN_PRIMARY, BTN_OUTLINE, BTN_GHOST, FIELD, LABEL } from "../shop/ui";
 
 const API_URL = "https://rafael-coffee-subscriptions-production.up.railway.app";
 const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APPLICATION_ID || "";
@@ -168,7 +168,7 @@ export default function SubscribeWizard({ onBack }) {
       <div className="shop-root flex min-h-screen items-center justify-center bg-cream px-4 font-body text-ink antialiased">
         <div className="w-full max-w-lg rounded-3xl border border-maroon/10 bg-porcelain p-10 text-center shadow-xl">
           <img src={LOGO} alt="Rafael's Coffee" className="mx-auto h-20 w-20 rounded-full object-contain" />
-          <h2 className="mt-6 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon">
+          <h2 className="mt-6 font-heading text-4xl font-bold uppercase tracking-[0.02em] text-maroon">
             You're Subscribed!
           </h2>
           <p className="mt-4 leading-relaxed text-ink/80">
@@ -214,7 +214,7 @@ export default function SubscribeWizard({ onBack }) {
           <div>
             <div className="text-center">
               <Eyebrow>Step 1 of 3</Eyebrow>
-              <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
+              <h2 className="mt-3 font-heading text-4xl font-bold uppercase tracking-[0.02em] text-maroon sm:text-5xl">
                 Choose Your Coffee
               </h2>
               <p className="mt-3 text-mid">All beans roasted to order in Lancefield, Victoria.</p>
@@ -318,11 +318,11 @@ export default function SubscribeWizard({ onBack }) {
             </div>
 
             {price && (
-              <div className="mt-8 flex items-center justify-between rounded-2xl border border-maroon/10 bg-espresso px-6 py-5 text-cream">
-                <span className="text-sm text-cream/80">
+              <div className="mt-8 flex items-center justify-between rounded-2xl border border-maroon/15 bg-white px-6 py-5">
+                <span className="text-sm text-mid">
                   {selectedProduct?.name} · {selection.size}g · {selection.frequency}
                 </span>
-                <span className="font-heading text-xl font-extrabold text-brass-soft">${price} <span className="text-xs font-medium text-cream/60">/ delivery</span></span>
+                <span className="font-heading text-xl font-bold text-maroon">${price} <span className="text-xs font-medium text-mid">/ delivery</span></span>
               </div>
             )}
 
@@ -339,7 +339,7 @@ export default function SubscribeWizard({ onBack }) {
           <div className="mx-auto max-w-2xl">
             <div className="text-center">
               <Eyebrow>Step 2 of 3</Eyebrow>
-              <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
+              <h2 className="mt-3 font-heading text-4xl font-bold uppercase tracking-[0.02em] text-maroon sm:text-5xl">
                 Your Details
               </h2>
               <p className="mt-3 text-mid">Where should we deliver your coffee?</p>
@@ -408,7 +408,7 @@ export default function SubscribeWizard({ onBack }) {
           <div className="mx-auto max-w-2xl">
             <div className="text-center">
               <Eyebrow>Step 3 of 3</Eyebrow>
-              <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase tracking-tight text-maroon sm:text-5xl">
+              <h2 className="mt-3 font-heading text-4xl font-bold uppercase tracking-[0.02em] text-maroon sm:text-5xl">
                 Review &amp; Pay
               </h2>
               <p className="mt-3 text-mid">Confirm your subscription and enter your payment details.</p>
@@ -458,7 +458,7 @@ export default function SubscribeWizard({ onBack }) {
 
             <div className="mt-8 flex items-center justify-between">
               <button className={BTN_OUTLINE} onClick={() => setStep(2)} disabled={submitting}>← Back</button>
-              <button className={BTN_BRASS} onClick={handleSubmit} disabled={submitting || !cardReady}>
+              <button className={BTN_PRIMARY} onClick={handleSubmit} disabled={submitting || !cardReady}>
                 {submitting ? "Processing…" : `Start subscription · $${price}`}
               </button>
             </div>
