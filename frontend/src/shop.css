@@ -1,0 +1,24 @@
+/*
+ * Tailwind for the NEW e-commerce pages only.
+ * Preflight (Tailwind's global base reset) is intentionally NOT imported so the
+ * existing custom-CSS pages (Landing, Wizard, Portal, Admin) are left untouched.
+ * We only pull in the theme tokens + utilities.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  /* Rafael's Coffee brand palette */
+  --color-maroon: #402020;
+  --color-maroon-light: #5c2d2d;
+  --color-stone: #d6d1ca;
+  --color-stone-dark: #c4bdb5;
+  --color-ink: #262626;
+  --color-mid: #7a6a58;
+  --color-muted: #9a8a78;
+
+  /* Fonts (families already loaded via App.css) */
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+}
