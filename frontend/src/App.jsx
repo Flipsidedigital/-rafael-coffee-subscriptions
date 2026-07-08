@@ -7,20 +7,22 @@ import Shop from './pages/Shop'
 import './App.css'
 
 export default function App() {
-  const [page, setPage] = useState('home')
+  // Shop is the homepage now. The original landing page is preserved at /about.
+  const [page, setPage] = useState('shop')
 
   useEffect(() => {
     const path = window.location.pathname
     if (path.startsWith('/admin')) setPage('admin')
     else if (path.startsWith('/portal')) setPage('portal')
-    else if (path.startsWith('/shop')) setPage('shop')
     else if (path.startsWith('/subscribe')) setPage('subscribe')
+    else if (path.startsWith('/about')) setPage('home')
+    else setPage('shop') // '/' and '/shop' → shop
   }, [])
 
   return (
     <div className="app">
       {page === 'home' && <LandingPage onSubscribe={() => setPage('subscribe')} />}
-      {page === 'subscribe' && <SubscribeWizard onBack={() => setPage('home')} />}
+      {page === 'subscribe' && <SubscribeWizard onBack={() => (window.location.href = '/')} />}
       {page === 'portal' && <Portal />}
       {page === 'admin' && <Admin />}
       {page === 'shop' && <Shop />}

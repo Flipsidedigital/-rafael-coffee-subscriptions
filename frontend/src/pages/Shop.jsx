@@ -9,6 +9,7 @@ import {
   SUBSCRIBER_DISCOUNT,
 } from '../shop/products';
 import { addToCart, cartCount, isSubscriber } from '../shop/cart';
+import { Stars, SectionHeading, CoffeeBag, PriceTag } from '../shop/ui';
 
 const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 
@@ -81,7 +82,7 @@ function ShopHeader({ count, subscriber, navigate }) {
         <nav className="hidden items-center gap-8 font-heading text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 md:flex">
           <button onClick={() => navigate('/shop')} className="transition hover:text-maroon">Coffee</button>
           <a href="/subscribe" className="transition hover:text-maroon">Subscribe</a>
-          <a href="/#story" onClick={(e) => { e.preventDefault(); window.location.href = '/'; }} className="transition hover:text-maroon">Our Story</a>
+          <a href="/about" className="transition hover:text-maroon">Our Story</a>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -297,43 +298,6 @@ function ProductCard({ product, subscriber, navigate }) {
   );
 }
 
-/* ================================================== The "designed bag" visual */
-function CoffeeBag({ product }) {
-  return (
-    <div
-      className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl"
-      style={{ background: `linear-gradient(158deg, ${product.accent} 0%, rgba(0,0,0,0.55) 135%)` }}
-    >
-      {/* sheen */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'linear-gradient(115deg, rgba(255,255,255,0.14), transparent 42%)' }}
-      />
-      {/* top brand */}
-      <span className="absolute inset-x-0 top-4 text-center font-heading text-[10px] font-semibold uppercase tracking-[0.4em] text-cream/70">
-        Rafael's Coffee
-      </span>
-
-      {/* centre label */}
-      <div className="relative px-4 text-center">
-        <span className="mx-auto mb-3 block h-px w-8 bg-brass-soft/80" />
-        <p className="font-serif text-sm italic text-brass-soft">{product.sub}</p>
-        <p className="mt-1 font-heading text-2xl font-extrabold uppercase leading-none tracking-tight text-cream">
-          {product.name}
-        </p>
-        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.3em] text-cream/60">
-          {product.weight} · Whole bean
-        </p>
-      </div>
-
-      {/* bottom line */}
-      <span className="absolute inset-x-0 bottom-4 text-center text-[9px] uppercase tracking-[0.32em] text-cream/45">
-        Macedon Ranges Roastery
-      </span>
-    </div>
-  );
-}
-
 /* ========================================================= Subscription band */
 function SubscriptionTeaser({ navigate }) {
   const steps = [
@@ -527,43 +491,6 @@ function ProductDetail({ product, subscriber, navigate }) {
 }
 
 /* ================================================================= Bits */
-function SectionHeading({ eyebrow, title, italic }) {
-  return (
-    <div className="text-center">
-      <p className="font-heading text-xs font-semibold uppercase tracking-[0.35em] text-brass">{eyebrow}</p>
-      <h2 className="mt-3 font-heading text-4xl font-extrabold uppercase leading-none tracking-tight text-maroon sm:text-5xl">
-        {title}{' '}
-        <span className="font-serif font-normal italic text-mid">{italic}</span>
-      </h2>
-    </div>
-  );
-}
-
-function Stars({ value = 5, small }) {
-  const full = Math.round(value);
-  const size = small ? 'text-xs' : 'text-sm';
-  return (
-    <span className={`inline-flex tracking-tight text-brass ${size}`} aria-label={`${value} out of 5 stars`}>
-      {'★★★★★'.split('').map((s, i) => (
-        <span key={i} className={i < full ? '' : 'text-brass/25'}>★</span>
-      ))}
-    </span>
-  );
-}
-
-function PriceTag({ price, subscriber, large }) {
-  const size = large ? 'text-3xl' : 'text-lg';
-  if (subscriber) {
-    return (
-      <span className="flex items-baseline gap-2">
-        <span className={`font-heading font-extrabold text-maroon ${size}`}>{formatPrice(subscriberPrice(price))}</span>
-        <span className="text-xs text-mid line-through">{formatPrice(price)}</span>
-      </span>
-    );
-  }
-  return <span className={`font-heading font-extrabold text-maroon ${size}`}>{formatPrice(price)}</span>;
-}
-
 function Meta({ label, value }) {
   return (
     <div>
