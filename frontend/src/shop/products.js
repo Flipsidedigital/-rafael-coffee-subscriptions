@@ -1,5 +1,9 @@
-// Sample catalogue for the shop (E1). Backed by hardcoded data for now;
-// swap for GET /api/products / a shop catalogue endpoint when the backend lands.
+// Rafael's Coffee catalogue (E1). Names/prices/blends mirror the live shop at
+// rafaelscoffee.com.au/shop. IDs match the backend PRODUCT_TYPES keys in
+// backend/src/routes/subscriptions-create.js (onesto, ipanema, llaneros,
+// calabrian, equinox, guatemala, peru, decaf) so orders/subscriptions line up.
+// NOTE: tasting notes, blurbs and ratings are placeholder copy — confirm with
+// the client. The core labels (name, blend %, price) are from the live site.
 
 export const CATEGORIES = [
   { key: 'all', label: 'All' },
@@ -20,7 +24,7 @@ export const PRODUCTS = [
     sub: '100% Arabica',
     weight: '250g',
     price: 18,
-    accent: '#402020', // deep maroon
+    accent: '#402020',
     rating: 4.9,
     reviews: 214,
     blurb: 'A smooth, balanced house blend — chocolate and caramel with a clean, lingering finish.',
@@ -35,7 +39,7 @@ export const PRODUCTS = [
     sub: '100% Arabica',
     weight: '250g',
     price: 18,
-    accent: '#9a4a2f', // terracotta
+    accent: '#9a4a2f',
     rating: 4.8,
     reviews: 168,
     blurb: 'Bright and juicy with a soft, syrupy body — our everyday crowd-pleaser.',
@@ -44,13 +48,58 @@ export const PRODUCTS = [
     notes: ['Red berry', 'Brown sugar', 'Citrus'],
   },
   {
-    id: 'guatemala-antigua',
+    id: 'llaneros',
+    category: 'coffee',
+    name: 'The Llaneros',
+    sub: '85% Arabica · 15% Robusta',
+    weight: '250g',
+    price: 18,
+    accent: '#5c3a2e',
+    rating: 4.8,
+    reviews: 132,
+    blurb: 'A bold, full-throttle blend with a thick crema — built for milk and busy mornings.',
+    origin: 'Colombia · Brazil · PNG · India Robusta',
+    roast: 'Medium-dark',
+    notes: ['Dark chocolate', 'Molasses', 'Walnut'],
+  },
+  {
+    id: 'calabrian',
+    category: 'coffee',
+    name: 'The Calabrian',
+    sub: '80% Arabica · 20% Robusta',
+    weight: '250g',
+    price: 18,
+    accent: '#6b4f2a',
+    rating: 4.7,
+    reviews: 118,
+    blurb: 'Traditional Italian-style strength — intense, syrupy and unapologetically rich.',
+    origin: 'Brazil · India Arabica · India Robusta',
+    roast: 'Dark',
+    notes: ['Cocoa', 'Roasted hazelnut', 'Baking spice'],
+  },
+  {
+    id: 'equinox', // backend seasonal slot; display rotates with the season
+    category: 'coffee',
+    name: 'Old Man Winter',
+    sub: '100% Arabica · Winter blend',
+    weight: '250g',
+    price: 18,
+    accent: '#34424c',
+    rating: 4.9,
+    reviews: 74,
+    blurb: 'Our limited winter seasonal — deep, warming and made for cold mornings by the fire.',
+    origin: 'Seasonal winter blend',
+    roast: 'Medium-dark',
+    notes: ['Dark chocolate', 'Baked plum', 'Warm spice'],
+  },
+  {
+    id: 'guatemala',
     category: 'coffee',
     name: 'Guatemala Antigua',
     sub: 'Single Origin',
     weight: '250g',
     price: 20,
-    accent: '#38412f', // deep olive
+    accent: '#38412f',
     rating: 4.9,
     reviews: 97,
     blurb: 'A classic Antigua profile — full-bodied and cocoa-rich with a gentle whisper of spice.',
@@ -59,16 +108,31 @@ export const PRODUCTS = [
     notes: ['Dark cocoa', 'Baking spice', 'Orange peel'],
   },
   {
-    id: 'mexico-decaf',
+    id: 'peru',
     category: 'coffee',
-    name: 'Mexico Decaf',
-    sub: 'Swiss Water Decaf',
+    name: 'Peru Aprocassi Organic',
+    sub: 'Single Origin · Organic',
     weight: '250g',
     price: 20,
-    accent: '#33404a', // slate
+    accent: '#2f4738',
+    rating: 4.8,
+    reviews: 61,
+    blurb: 'A certified-organic Peruvian single origin — clean, sweet and beautifully balanced.',
+    origin: 'Aprocassi Co-op, Cajamarca, Peru',
+    roast: 'Medium',
+    notes: ['Caramel', 'Red apple', 'Almond'],
+  },
+  {
+    id: 'decaf',
+    category: 'coffee',
+    name: 'Mexico Decaf',
+    sub: 'Swiss Water® Process · Organic',
+    weight: '250g',
+    price: 20,
+    accent: '#4a4640',
     rating: 4.7,
     reviews: 63,
-    blurb: 'All of the flavour, none of the buzz — sweet, nutty and quietly comforting.',
+    blurb: 'All of the flavour, none of the buzz — Swiss Water® decaffeinated and certified organic.',
     origin: 'Chiapas, Mexico',
     roast: 'Medium',
     notes: ['Hazelnut', 'Milk chocolate', 'Maple'],

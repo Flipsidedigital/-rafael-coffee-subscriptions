@@ -12,10 +12,10 @@ const PRODUCTS = [
   { id: "ipanema", name: "The Ipanema", sub: "100% Arabica", desc: "Brazil · Mexico · Sumatra", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#9a4a2f" },
   { id: "llaneros", name: "The Llaneros", sub: "85% Arabica · 15% Robusta", desc: "Colombia · Brazil · PNG · India Robusta", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#5c3a2e" },
   { id: "calabrian", name: "The Calabrian", sub: "80% Arabica · 20% Robusta", desc: "Brazil · India Arabica · India Robusta", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#6b4f2a" },
-  { id: "equinox", name: "The Equinox", sub: "100% Arabica", desc: "Seasonal autumn blend", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#7a3b32" },
+  { id: "equinox", name: "Old Man Winter", sub: "100% Arabica · Winter blend", desc: "Seasonal 100% Arabica winter blend", type: "blend", price250: 18, price500: 30, price1kg: 55, accent: "#34424c" },
   { id: "guatemala", name: "Guatemala Antigua", sub: "Single Origin", desc: "Seasonal · rotating every ~3 months", type: "single", price250: 20, price500: 35, price1kg: 60, accent: "#38412f" },
   { id: "peru", name: "Peru Aprocassi Organic", sub: "Single Origin · Organic", desc: "Seasonal · rotating every ~3 months", type: "single", price250: 20, price500: 35, price1kg: 60, accent: "#2f4738" },
-  { id: "decaf", name: "Mexico Decaf", sub: "Swiss Water Process · Organic", desc: "Full flavour without the caffeine", type: "decaf", price250: 20, price500: 35, price1kg: 60, accent: "#33404a" },
+  { id: "decaf", name: "Mexico Decaf", sub: "Swiss Water® Process · Organic", desc: "Full flavour without the caffeine", type: "decaf", price250: 20, price500: 35, price1kg: 60, accent: "#33404a" },
 ];
 
 const FREQUENCIES = [
