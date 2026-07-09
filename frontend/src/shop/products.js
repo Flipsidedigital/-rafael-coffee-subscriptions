@@ -145,6 +145,45 @@ export const PRODUCTS = [
     roast: 'Medium',
     notes: ['Hazelnut', 'Milk chocolate', 'Maple'],
   },
+
+  // ── Accessories ──────────────────────────────────────────────────────────
+  {
+    id: 'airscape',
+    category: 'accessories',
+    name: 'Airscape® Coffee Canister',
+    sub: 'Airtight storage',
+    price: 55,
+    image: '/products/airscape.jpg',
+    fit: 'cover',
+    rating: 4.9,
+    reviews: 41,
+    blurb: 'A patented plunger lid forces the air out and locks freshness in — keep your beans at their best for longer.',
+  },
+  {
+    id: 'silicone',
+    category: 'accessories',
+    name: 'Silicone Storage Bags',
+    sub: 'Reusable · food-grade',
+    price: 5.95,
+    fit: 'contain',
+    rating: 4.7,
+    reviews: 18,
+    blurb: 'Durable, food-grade reusable bags — perfect for beans, snacks and leftovers. Kind on the planet, too.',
+  },
+
+  // ── Classes ──────────────────────────────────────────────────────────────
+  {
+    id: 'masterclass',
+    category: 'classes',
+    name: 'Coffee Masterclass',
+    sub: 'At the roastery · ~2 hrs',
+    price: 99,
+    image: '/products/masterclass.jpg',
+    fit: 'cover',
+    rating: 5,
+    reviews: 23,
+    blurb: 'A hands-on session at our Lancefield roastery — dial in espresso, master milk texturing and brew like a pro.',
+  },
 ];
 
 export function getProduct(id) {

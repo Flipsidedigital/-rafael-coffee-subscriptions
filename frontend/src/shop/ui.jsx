@@ -2,7 +2,10 @@
 // Both Shop.jsx and SubscribeWizard.jsx import from here so the two flows use
 // the exact same components, palette and control styling.
 
+import { useState } from 'react';
 import { formatPrice, subscriberPrice } from './products';
+
+const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 
 /* ---- reusable control class tokens (the "same components" across pages) ---- */
 const BTN_BASE =
@@ -70,14 +73,22 @@ export function PriceTag({ price, subscriber, large }) {
 // white card, so object-contain letterboxing is invisible. Named CoffeeBag for
 // backwards-compat with existing imports across Shop + SubscribeWizard.
 export function CoffeeBag({ product }) {
+  const [err, setErr] = useState(false);
+  const src = product.image || `/products/${product.id}.png`;
+  const cover = product.fit === 'cover';
   return (
-    <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-white p-2 shadow-sm">
-      <img
-        src={`/products/${product.id}.png`}
-        alt={product.name}
-        loading="lazy"
-        className="h-full w-full object-contain"
-      />
+    <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+      {err ? (
+        <img src={LOGO} alt={product.name} className="h-1/3 w-1/3 object-contain opacity-60" />
+      ) : (
+        <img
+          src={src}
+          alt={product.name}
+          loading="lazy"
+          onError={() => setErr(true)}
+          className={cover ? 'h-full w-full object-cover' : 'h-full w-full object-contain p-2'}
+        />
+      )}
     </div>
   );
 }

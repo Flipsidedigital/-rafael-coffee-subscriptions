@@ -9,11 +9,14 @@ const router = express.Router();
 const PRICE_CENTS = {
   onesto: 1800, ipanema: 1800, llaneros: 1800, calabrian: 1800, equinox: 1800,
   guatemala: 2000, peru: 2000, decaf: 2000,
+  // accessories & classes
+  airscape: 5500, silicone: 595, masterclass: 9900,
 };
 const NAMES = {
   onesto: 'The Onesto', ipanema: 'The Ipanema', llaneros: 'The Llaneros',
   calabrian: 'The Calabrian', equinox: 'Old Man Winter', guatemala: 'Guatemala Antigua',
   peru: 'Peru Aprocassi Organic', decaf: 'Mexico Swiss Water® Process Organic Decaf',
+  airscape: 'Airscape® Coffee Canister', silicone: 'Silicone Storage Bags', masterclass: 'Coffee Masterclass',
 };
 const FREE_SHIPPING_CENTS = 6000; // $60 (mirrors frontend)
 const FLAT_SHIPPING_CENTS = 1000; // $10

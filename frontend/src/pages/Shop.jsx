@@ -172,7 +172,7 @@ function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
 function ShopListing({ subscriber, navigate }) {
   const [active, setActive] = useState('all');
   const visible = active === 'all' ? PRODUCTS : PRODUCTS.filter((p) => p.category === active);
-  const placeholder = active === 'accessories' || active === 'classes';
+  const placeholder = visible.length === 0;
 
   return (
     <main>
@@ -332,7 +332,7 @@ function ProductCard({ product, subscriber, navigate }) {
         <h3 className="font-heading text-sm font-semibold uppercase leading-snug tracking-[0.03em] text-maroon">
           {product.name}
         </h3>
-        <p className="mt-1 text-xs text-mid">{product.sub} · {product.weight}</p>
+        <p className="mt-1 text-xs text-mid">{product.sub}{product.weight ? ` · ${product.weight}` : ''}</p>
         <div className="mt-1.5 flex items-center gap-1.5">
           <Stars value={product.rating} small />
           <span className="text-[11px] text-mid">({product.reviews})</span>
@@ -472,7 +472,7 @@ function ProductDetail({ product, subscriber, navigate }) {
 
         <div className="flex flex-col">
           <p className="font-heading text-xs font-semibold uppercase tracking-[0.3em] text-brass">
-            {product.origin}
+            {product.origin || product.sub}
           </p>
           <h1 className="mt-3 font-heading text-3xl font-bold uppercase leading-tight tracking-[0.01em] text-maroon sm:text-4xl">
             {product.name}
@@ -490,11 +490,13 @@ function ProductDetail({ product, subscriber, navigate }) {
 
           <p className="mt-5 max-w-md leading-relaxed text-ink/80">{product.blurb}</p>
 
-          <dl className="mt-7 grid grid-cols-3 gap-4 border-y border-maroon/10 py-6 text-sm">
-            <Meta label="Origin" value={product.origin} />
-            <Meta label="Roast" value={product.roast} />
-            <Meta label="Format" value="Whole bean" />
-          </dl>
+          {product.origin && (
+            <dl className="mt-7 grid grid-cols-3 gap-4 border-y border-maroon/10 py-6 text-sm">
+              <Meta label="Origin" value={product.origin} />
+              <Meta label="Roast" value={product.roast} />
+              <Meta label="Format" value="Whole bean" />
+            </dl>
+          )}
 
           {product.notes?.length > 0 && (
             <div className="mt-6">
@@ -535,6 +537,7 @@ function ProductDetail({ product, subscriber, navigate }) {
           </p>
 
           {/* roaster's note */}
+          {product.category === 'coffee' && (
           <div className="mt-8 rounded-2xl bg-porcelain p-6">
             <p className="font-heading text-xs font-semibold uppercase tracking-[0.2em] text-brass">Roaster's note</p>
             <p className="mt-2 text-base leading-relaxed text-ink/75">
@@ -542,6 +545,7 @@ function ProductDetail({ product, subscriber, navigate }) {
               you at its sweetest. Best enjoyed within four weeks of the roast date on the base.
             </p>
           </div>
+          )}
         </div>
       </div>
     </main>
