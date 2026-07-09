@@ -29,6 +29,7 @@ export function addToCart(product, qty = 1) {
       name: product.name,
       price: product.price,
       weight: product.weight || null,
+      image: product.image || `/products/${product.id}.png`,
       qty,
     });
   }

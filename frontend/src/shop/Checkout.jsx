@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCart, clearCart } from './cart';
-import { formatPrice, shippingFor } from './products';
+import { formatPrice, shippingFor, getProduct } from './products';
 import { Eyebrow, BTN_PRIMARY, BTN_OUTLINE, FIELD, LABEL } from './ui';
 
 const API_URL = 'https://rafael-coffee-subscriptions-production.up.railway.app';
@@ -183,7 +183,7 @@ export default function Checkout({ navigate }) {
               {items.map((i) => (
                 <li key={i.id} className="flex gap-3">
                   <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-black/5 bg-white p-1">
-                    <img src={`/products/${i.id}.png`} alt={i.name} className="h-full w-full object-contain" />
+                    <img src={i.image || getProduct(i.id)?.image || `/products/${i.id}.png`} alt={i.name} className="h-full w-full object-contain" />
                     <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-maroon px-1 text-[10px] font-bold text-cream">{i.qty}</span>
                   </div>
                   <div className="flex flex-1 items-center justify-between gap-2">

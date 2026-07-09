@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCart, setQty, removeFromCart } from './cart';
-import { formatPrice, FREE_SHIPPING_THRESHOLD, shippingFor } from './products';
+import { formatPrice, FREE_SHIPPING_THRESHOLD, shippingFor, getProduct } from './products';
 import { BTN_PRIMARY } from './ui';
 
 // Slide-in cart drawer. Controlled by `open`; syncs with localStorage cart.
@@ -65,7 +65,7 @@ export default function CartDrawer({ open, onClose, navigate }) {
                 {items.map((i) => (
                   <li key={i.id} className="flex gap-3">
                     <div className="h-20 w-16 shrink-0 overflow-hidden rounded-lg border border-black/5 bg-white p-1">
-                      <img src={`/products/${i.id}.png`} alt={i.name} className="h-full w-full object-contain" />
+                      <img src={i.image || getProduct(i.id)?.image || `/products/${i.id}.png`} alt={i.name} className="h-full w-full object-contain" />
                     </div>
                     <div className="flex flex-1 flex-col">
                       <p className="font-heading text-xs font-semibold uppercase leading-snug tracking-[0.02em] text-maroon">{i.name}</p>
