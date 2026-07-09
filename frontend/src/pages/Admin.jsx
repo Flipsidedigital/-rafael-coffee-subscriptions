@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import './Admin.css'
 
 const API_URL = "https://rafael-coffee-subscriptions-production.up.railway.app"
@@ -82,6 +82,9 @@ function AdminDashboard({ auth, onLogout }) {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [promoCodes, setPromoCodes] = useState([])
   const [newPromo, setNewPromo] = useState({ code: '', kind: 'percent', value: '', min_subtotal_cents: '', max_uses: '' })
+  const [classSessions, setClassSessions] = useState([])
+  const [newClass, setNewClass] = useState({ title: 'Coffee Masterclass', starts_at: '', duration_mins: 120, capacity: 8, price: '99', description: '' })
+  const [attendees, setAttendees] = useState({}) // sessionId -> bookings[]
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -90,18 +93,20 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords, shop, promos] = await Promise.all([
+      const [dash, subs, ords, shop, promos, classes] = await Promise.all([
         fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/shop-orders`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/promo-codes`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/api/admin/class-sessions`, { headers }).then(r => r.json()),
       ])
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
       setOrders(Array.isArray(ords) ? ords : [])
       setShopOrders(Array.isArray(shop) ? shop : [])
       setPromoCodes(Array.isArray(promos) ? promos : [])
+      setClassSessions(Array.isArray(classes) ? classes : [])
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -183,6 +188,46 @@ function AdminDashboard({ auth, onLogout }) {
     }
   }
 
+  async function createClass() {
+    if (!newClass.title || !newClass.starts_at || !newClass.price) return
+    try {
+      const res = await fetch(`${API_URL}/api/admin/class-sessions`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          title: newClass.title,
+          description: newClass.description,
+          starts_at: new Date(newClass.starts_at).toISOString(),
+          duration_mins: parseInt(newClass.duration_mins, 10) || 120,
+          capacity: parseInt(newClass.capacity, 10) || 8,
+          price_cents: Math.round(parseFloat(newClass.price) * 100),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Failed to create class'); return }
+      setActionMsg('Class created')
+      setNewClass({ title: 'Coffee Masterclass', starts_at: '', duration_mins: 120, capacity: 8, price: '99', description: '' })
+      fetchAll()
+    } catch (err) {
+      setError('Failed to create class')
+    }
+  }
+
+  async function toggleClass(id, active) {
+    try {
+      await fetch(`${API_URL}/api/admin/class-sessions/${id}`, { method: 'PATCH', headers, body: JSON.stringify({ active }) })
+      fetchAll()
+    } catch (err) { setError('Failed to update class') }
+  }
+
+  async function loadAttendees(id) {
+    if (attendees[id]) { setAttendees(a => { const n = { ...a }; delete n[id]; return n }); return }
+    try {
+      const res = await fetch(`${API_URL}/api/admin/class-sessions/${id}/bookings`, { headers })
+      const data = await res.json()
+      setAttendees(a => ({ ...a, [id]: Array.isArray(data) ? data : [] }))
+    } catch (err) { setError('Failed to load attendees') }
+  }
+
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
 
   // Unify subscription-delivery orders and one-off shop orders into one list.
@@ -226,7 +271,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['promos','Promo Codes']].map(([v, l]) => (
+          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['classes','Classes'], ['promos','Promo Codes']].map(([v, l]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
           ))}
         </div>
@@ -370,6 +415,80 @@ function AdminDashboard({ auth, onLogout }) {
                   ))}
                   {allOrders.length === 0 && (
                     <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Classes (E3) */}
+        {view === 'classes' && (
+          <div className="admin-section">
+            <h2 className="admin-section-title">CLASSES</h2>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-end', marginBottom: 20, padding: 16, border: '1px solid rgba(64,32,32,0.12)', borderRadius: 10, background: '#fff' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Title
+                <input className="tracking-input" style={{ minWidth: 180 }} value={newClass.title} onChange={e => setNewClass(c => ({ ...c, title: e.target.value }))} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Date &amp; time
+                <input className="tracking-input" type="datetime-local" value={newClass.starts_at} onChange={e => setNewClass(c => ({ ...c, starts_at: e.target.value }))} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Mins
+                <input className="tracking-input" type="number" style={{ width: 70 }} value={newClass.duration_mins} onChange={e => setNewClass(c => ({ ...c, duration_mins: e.target.value }))} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Capacity
+                <input className="tracking-input" type="number" style={{ width: 80 }} value={newClass.capacity} onChange={e => setNewClass(c => ({ ...c, capacity: e.target.value }))} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Price ($)
+                <input className="tracking-input" type="number" style={{ width: 80 }} value={newClass.price} onChange={e => setNewClass(c => ({ ...c, price: e.target.value }))} />
+              </label>
+              <button className="admin-action-btn" onClick={createClass} disabled={!newClass.title || !newClass.starts_at || !newClass.price}>Add class</button>
+            </div>
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr><th>Class</th><th>When</th><th>Booked</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  {classSessions.map(s => (
+                    <Fragment key={s.id}>
+                      <tr>
+                        <td className="td-name">{s.title}</td>
+                        <td>{new Date(s.starts_at).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</td>
+                        <td>{s.booked} / {s.capacity}</td>
+                        <td>${(s.price_cents / 100).toFixed(2)}</td>
+                        <td><span className={`status-badge status-${s.active ? 'active' : 'cancelled'}`}>{s.active ? 'active' : 'inactive'}</span></td>
+                        <td>
+                          <div className="admin-row-actions">
+                            <button className="admin-action-btn" onClick={() => loadAttendees(s.id)}>{attendees[s.id] ? 'Hide' : `Attendees (${s.bookings_count})`}</button>
+                            <button className="admin-action-btn" onClick={() => toggleClass(s.id, !s.active)}>{s.active ? 'Deactivate' : 'Activate'}</button>
+                          </div>
+                        </td>
+                      </tr>
+                      {attendees[s.id] && (
+                        <tr>
+                          <td colSpan={6} style={{ background: '#faf7f2' }}>
+                            {attendees[s.id].length === 0 ? (
+                              <span className="td-email">No bookings yet</span>
+                            ) : (
+                              <div style={{ display: 'grid', gap: 6, padding: '4px 0' }}>
+                                {attendees[s.id].map(b => (
+                                  <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                                    <span><strong>{b.name}</strong> · {b.email}{b.phone ? ` · ${b.phone}` : ''}</span>
+                                    <span className="td-email">{b.seats} seat{b.seats > 1 ? 's' : ''} · ${(b.amount_cents / 100).toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                  {classSessions.length === 0 && (
+                    <tr><td colSpan={6} className="admin-empty-row">No classes yet</td></tr>
                   )}
                 </tbody>
               </table>

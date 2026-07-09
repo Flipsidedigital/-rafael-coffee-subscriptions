@@ -45,6 +45,7 @@ app.use("/api/subscriptions", require("./routes/subscriptions-create"));
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders-oneoff")); // public guest checkout — must precede the auth-protected orders router
 app.use("/api/orders", require("./routes/orders"));
+app.use("/api/classes", require("./routes/classes"));
 app.use("/api/portal", require("./routes/portal"));
 app.use("/webhooks/square", require("./webhooks/square"));
 const { router: adminRouter } = require("./routes/admin-dashboard");
@@ -62,7 +63,8 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-require("./db/ensure-shop-orders")(); // create shop_orders table if missing (no migration runner)
+require("./db/ensure-shop-orders")(); // shop_orders + promo_codes (no migration runner)
+require("./db/ensure-classes")(); // class_sessions + class_bookings
 
 app.listen(PORT, () => {
   console.log(`Rafael Coffee API running on port ${PORT}`);

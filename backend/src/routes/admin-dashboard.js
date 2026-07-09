@@ -229,4 +229,63 @@ router.patch('/promo-codes/:id', adminAuth, async (req, res) => {
   }
 });
 
+// ── Class sessions & bookings (E3) ───────────────────────────────────────────
+router.get('/class-sessions', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT s.*, COALESCE(SUM(b.seats), 0)::int AS booked, COUNT(b.id)::int AS bookings_count
+      FROM class_sessions s
+      LEFT JOIN class_bookings b ON b.session_id = s.id AND b.status = 'confirmed'
+      GROUP BY s.id ORDER BY s.starts_at DESC`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Class sessions error:', err);
+    res.status(500).json({ error: 'Failed to load classes' });
+  }
+});
+
+router.post('/class-sessions', adminAuth, async (req, res) => {
+  const { title, description, starts_at, duration_mins, capacity, price_cents } = req.body;
+  if (!title || !starts_at || !price_cents) return res.status(400).json({ error: 'Title, date and price are required' });
+  try {
+    const result = await db.query(
+      `INSERT INTO class_sessions (title, description, starts_at, duration_mins, capacity, price_cents)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [title, description || null, starts_at, parseInt(duration_mins, 10) || 120, parseInt(capacity, 10) || 8, parseInt(price_cents, 10)]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Class create error:', err);
+    res.status(500).json({ error: 'Failed to create class' });
+  }
+});
+
+router.patch('/class-sessions/:id', adminAuth, async (req, res) => {
+  const { active } = req.body;
+  try {
+    const result = await db.query(
+      'UPDATE class_sessions SET active = COALESCE($1, active) WHERE id = $2 RETURNING *',
+      [typeof active === 'boolean' ? active : null, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Class not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Class update error:', err);
+    res.status(500).json({ error: 'Failed to update class' });
+  }
+});
+
+router.get('/class-sessions/:id/bookings', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM class_bookings WHERE session_id = $1 ORDER BY created_at ASC',
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Class bookings error:', err);
+    res.status(500).json({ error: 'Failed to load bookings' });
+  }
+});
+
 module.exports = { router, adminAuth };

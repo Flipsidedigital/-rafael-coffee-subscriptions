@@ -12,6 +12,7 @@ import { addToCart, cartCount, isSubscriber } from '../shop/cart';
 import { Stars, SectionHeading, CoffeeBag, PriceTag } from '../shop/ui';
 import CartDrawer from '../shop/CartDrawer';
 import Checkout from '../shop/Checkout';
+import Classes from '../shop/Classes';
 
 const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 
@@ -43,7 +44,8 @@ export default function Shop() {
   }, []);
 
   const isCheckout = /^\/shop\/checkout\/?$/.test(path);
-  const detailMatch = !isCheckout && path.match(/^\/shop\/([^/]+)\/?$/);
+  const isClasses = /^\/shop\/classes\/?$/.test(path);
+  const detailMatch = !isCheckout && !isClasses && path.match(/^\/shop\/([^/]+)\/?$/);
   const product = detailMatch ? getProduct(detailMatch[1]) : null;
 
   return (
@@ -52,6 +54,8 @@ export default function Shop() {
       <ShopHeader count={count} subscriber={subscriber} navigate={navigate} onOpenCart={() => setCartOpen(true)} />
       {isCheckout ? (
         <Checkout navigate={navigate} />
+      ) : isClasses ? (
+        <Classes navigate={navigate} />
       ) : detailMatch ? (
         <ProductDetail product={product} subscriber={subscriber} navigate={navigate} />
       ) : (
@@ -308,10 +312,12 @@ function TrustStrip() {
 /* ============================================================== Product card */
 function ProductCard({ product, subscriber, navigate }) {
   const [added, setAdded] = useState(false);
-  const href = `/shop/${product.id}`;
+  const isClass = product.category === 'classes';
+  const href = isClass ? '/shop/classes' : `/shop/${product.id}`;
 
   function onAdd(e) {
     e.stopPropagation();
+    if (isClass) { navigate('/shop/classes'); return; }
     addToCart(product);
     window.dispatchEvent(new Event('cart:open'));
     setAdded(true);
@@ -322,7 +328,7 @@ function ProductCard({ product, subscriber, navigate }) {
     <article className="group flex flex-col">
       <button
         onClick={() => navigate(href)}
-        aria-label={`View ${product.name}`}
+        aria-label={isClass ? `Book ${product.name}` : `View ${product.name}`}
         className="block overflow-hidden rounded-2xl transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass group-hover:-translate-y-1 group-hover:drop-shadow-xl"
       >
         <CoffeeBag product={product} />
@@ -348,7 +354,7 @@ function ProductCard({ product, subscriber, navigate }) {
               (added ? 'bg-espresso text-cream' : 'bg-maroon text-cream hover:bg-maroon-light')
             }
           >
-            {added ? 'Added ✓' : 'Add'}
+            {isClass ? 'Book' : added ? 'Added ✓' : 'Add'}
           </button>
         </div>
       </div>
@@ -448,6 +454,7 @@ function ProductDetail({ product, subscriber, navigate }) {
   }
 
   function onAdd() {
+    if (product.category === 'classes') { navigate('/shop/classes'); return; }
     addToCart(product);
     window.dispatchEvent(new Event('cart:open'));
     setAdded(true);
@@ -520,7 +527,7 @@ function ProductDetail({ product, subscriber, navigate }) {
               (added ? 'bg-espresso text-cream' : 'bg-maroon text-cream hover:bg-maroon-light')
             }
           >
-            {added ? 'Added to cart ✓' : `Add to cart — ${formatPrice(subscriber ? subscriberPrice(product.price) : product.price)}`}
+            {product.category === 'classes' ? 'Book a class' : added ? 'Added to cart ✓' : `Add to cart — ${formatPrice(subscriber ? subscriberPrice(product.price) : product.price)}`}
           </button>
 
           <p className="mt-4 text-sm text-mid">
