@@ -13,6 +13,7 @@ import { Stars, SectionHeading, CoffeeBag, PriceTag } from '../shop/ui';
 import CartDrawer from '../shop/CartDrawer';
 import Checkout from '../shop/Checkout';
 import Classes from '../shop/Classes';
+import About from '../shop/About';
 
 const LOGO = '/Rafaels_Coffee_logo-rnd.png';
 
@@ -43,6 +44,7 @@ export default function Shop() {
     window.scrollTo({ top: 0 });
   }, []);
 
+  const isAbout = /^\/about\/?$/.test(path);
   const isCheckout = /^\/shop\/checkout\/?$/.test(path);
   const isClasses = /^\/shop\/classes\/?$/.test(path);
   const detailMatch = !isCheckout && !isClasses && path.match(/^\/shop\/([^/]+)\/?$/);
@@ -52,7 +54,9 @@ export default function Shop() {
     <div className="shop-root min-h-screen bg-cream font-body text-ink antialiased">
       <AnnounceBar />
       <ShopHeader count={count} subscriber={subscriber} navigate={navigate} onOpenCart={() => setCartOpen(true)} />
-      {isCheckout ? (
+      {isAbout ? (
+        <About navigate={navigate} />
+      ) : isCheckout ? (
         <Checkout navigate={navigate} />
       ) : isClasses ? (
         <Classes navigate={navigate} />
@@ -123,7 +127,7 @@ function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
         <img src={LOGO} alt="Rafael's Coffee" className="h-9 w-9 rounded-full object-contain" />
         <span className="font-heading text-sm font-semibold uppercase tracking-[0.22em] text-maroon">Rafael's Coffee</span>
       </a>
-      <a href="/about" className={linkCls}>Our Story</a>
+      <button onClick={() => { setMenuOpen(false); navigate('/about'); }} className={linkCls}>Our Story</button>
       <a href="https://rafaelscoffee.com.au" target="_blank" rel="noreferrer" className={linkCls}>Visit</a>
     </>
   );
