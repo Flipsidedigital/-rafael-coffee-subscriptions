@@ -186,6 +186,37 @@ export const PRODUCTS = [
   },
 ];
 
+const API_URL = 'https://rafael-coffee-subscriptions-production.up.railway.app';
+
+// Fetch the live catalogue from the DB; returns null on any failure so callers
+// fall back to the hardcoded PRODUCTS above (the shop can never go empty).
+export async function fetchCatalog() {
+  try {
+    const res = await fetch(`${API_URL}/api/shop-products`);
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return rows.map((r) => ({
+      id: r.id,
+      category: r.category,
+      name: r.name,
+      sub: r.sub || undefined,
+      weight: r.weight || undefined,
+      price: r.price_cents / 100,
+      image: r.image || undefined,
+      fit: r.fit || undefined,
+      blurb: r.blurb || undefined,
+      origin: r.origin || undefined,
+      roast: r.roast || undefined,
+      notes: Array.isArray(r.notes) ? r.notes : undefined,
+      rating: r.rating != null ? Number(r.rating) : undefined,
+      reviews: r.reviews != null ? Number(r.reviews) : undefined,
+    }));
+  } catch {
+    return null;
+  }
+}
+
 export function getProduct(id) {
   return PRODUCTS.find((p) => p.id === id) || null;
 }

@@ -3,7 +3,7 @@ import '../shop.css';
 import {
   PRODUCTS,
   CATEGORIES,
-  getProduct,
+  fetchCatalog,
   formatPrice,
   subscriberPrice,
   SUBSCRIBER_DISCOUNT,
@@ -22,7 +22,15 @@ export default function Shop() {
   const [path, setPath] = useState(window.location.pathname);
   const [count, setCount] = useState(cartCount());
   const [cartOpen, setCartOpen] = useState(false);
+  const [catalog, setCatalog] = useState(PRODUCTS);
   const subscriber = isSubscriber();
+
+  // Load the live catalogue; keeps the hardcoded PRODUCTS as fallback.
+  useEffect(() => {
+    let alive = true;
+    fetchCatalog().then((rows) => { if (alive && rows) setCatalog(rows); });
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
@@ -48,7 +56,7 @@ export default function Shop() {
   const isCheckout = /^\/shop\/checkout\/?$/.test(path);
   const isClasses = /^\/shop\/classes\/?$/.test(path);
   const detailMatch = !isCheckout && !isClasses && path.match(/^\/shop\/([^/]+)\/?$/);
-  const product = detailMatch ? getProduct(detailMatch[1]) : null;
+  const product = detailMatch ? (catalog.find((p) => p.id === detailMatch[1]) || null) : null;
 
   return (
     <div className="shop-root min-h-screen bg-cream font-body text-ink antialiased">
@@ -63,7 +71,7 @@ export default function Shop() {
       ) : detailMatch ? (
         <ProductDetail product={product} subscriber={subscriber} navigate={navigate} />
       ) : (
-        <ShopListing subscriber={subscriber} navigate={navigate} />
+        <ShopListing subscriber={subscriber} navigate={navigate} products={catalog} />
       )}
       <ShopFooter navigate={navigate} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} navigate={navigate} />
@@ -177,14 +185,14 @@ function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
 }
 
 /* ================================================================== Listing */
-function ShopListing({ subscriber, navigate }) {
+function ShopListing({ subscriber, navigate, products }) {
   const [active, setActive] = useState('all');
-  const visible = active === 'all' ? PRODUCTS : PRODUCTS.filter((p) => p.category === active);
+  const visible = active === 'all' ? products : products.filter((p) => p.category === active);
   const placeholder = visible.length === 0;
 
   return (
     <main>
-      <Hero navigate={navigate} />
+      <Hero navigate={navigate} products={products} />
       <TrustStrip />
 
       {/* Shop */}
@@ -233,7 +241,8 @@ function ShopListing({ subscriber, navigate }) {
   );
 }
 
-function Hero({ navigate }) {
+function Hero({ navigate, products }) {
+  const featured = products.filter((p) => p.category === 'coffee').slice(0, 3);
   return (
     <section className="relative overflow-hidden bg-cream">
       {/* soft glow */}
@@ -279,17 +288,19 @@ function Hero({ navigate }) {
         </div>
 
         {/* Bag cluster */}
-        <div className="relative mx-auto hidden h-[440px] w-full max-w-md items-center justify-center lg:flex">
-          <div className="absolute left-0 top-12 w-40 -rotate-6 drop-shadow-2xl">
-            <CoffeeBag product={PRODUCTS[2]} />
+        {featured.length >= 3 && (
+          <div className="relative mx-auto hidden h-[440px] w-full max-w-md items-center justify-center lg:flex">
+            <div className="absolute left-0 top-12 w-40 -rotate-6 drop-shadow-2xl">
+              <CoffeeBag product={featured[2]} />
+            </div>
+            <div className="absolute right-0 top-16 w-40 rotate-6 drop-shadow-2xl">
+              <CoffeeBag product={featured[1]} />
+            </div>
+            <div className="relative z-10 w-52 drop-shadow-2xl">
+              <CoffeeBag product={featured[0]} />
+            </div>
           </div>
-          <div className="absolute right-0 top-16 w-40 rotate-6 drop-shadow-2xl">
-            <CoffeeBag product={PRODUCTS[1]} />
-          </div>
-          <div className="relative z-10 w-52 drop-shadow-2xl">
-            <CoffeeBag product={PRODUCTS[0]} />
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );

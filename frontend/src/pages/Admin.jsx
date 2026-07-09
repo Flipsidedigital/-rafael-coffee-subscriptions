@@ -130,6 +130,8 @@ function AdminDashboard({ auth, onLogout }) {
   const [classSessions, setClassSessions] = useState([])
   const [newClass, setNewClass] = useState({ title: 'Coffee Masterclass', starts_at: '', duration_mins: 120, capacity: 8, price: '99', description: '' })
   const [attendees, setAttendees] = useState({}) // sessionId -> bookings[]
+  const [catalog, setCatalog] = useState([])
+  const [editing, setEditing] = useState(null) // product being added/edited (null = closed)
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -138,13 +140,14 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords, shop, promos, classes] = await Promise.all([
+      const [dash, subs, ords, shop, promos, classes, cat] = await Promise.all([
         fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/shop-orders`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/promo-codes`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/class-sessions`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/api/admin/shop-products`, { headers }).then(r => r.json()),
       ])
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
@@ -152,6 +155,7 @@ function AdminDashboard({ auth, onLogout }) {
       setShopOrders(Array.isArray(shop) ? shop : [])
       setPromoCodes(Array.isArray(promos) ? promos : [])
       setClassSessions(Array.isArray(classes) ? classes : [])
+      setCatalog(Array.isArray(cat) ? cat : [])
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -273,6 +277,45 @@ function AdminDashboard({ auth, onLogout }) {
     } catch (err) { setError('Failed to load attendees') }
   }
 
+  async function saveProduct() {
+    const p = editing
+    const body = {
+      id: p.id, category: p.category || 'coffee', name: p.name, sub: p.sub || null,
+      weight: p.weight || null, price_cents: Math.round(parseFloat(p.price || 0) * 100),
+      image: p.image || null, fit: p.fit || 'contain', blurb: p.blurb || null,
+      origin: p.origin || null, roast: p.roast || null,
+      notes: p.notes ? String(p.notes).split(',').map(s => s.trim()).filter(Boolean) : null,
+      rating: p.rating ? parseFloat(p.rating) : null, reviews: p.reviews ? parseInt(p.reviews, 10) : null,
+      active: p.active !== false,
+    }
+    if (!body.name || !body.price_cents) { setError('Name and price are required'); return }
+    try {
+      const url = p._new ? `${API_URL}/api/admin/shop-products` : `${API_URL}/api/admin/shop-products/${p._id}`
+      const res = await fetch(url, { method: p._new ? 'POST' : 'PATCH', headers, body: JSON.stringify(body) })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Failed to save product'); return }
+      setActionMsg('Product saved')
+      setEditing(null)
+      fetchAll()
+    } catch (err) { setError('Failed to save product') }
+  }
+
+  async function deleteProduct(id) {
+    if (!window.confirm('Delete this product?')) return
+    try {
+      await fetch(`${API_URL}/api/admin/shop-products/${id}`, { method: 'DELETE', headers })
+      setActionMsg('Product deleted')
+      fetchAll()
+    } catch (err) { setError('Failed to delete product') }
+  }
+
+  function openEdit(p) {
+    setEditing({ ...p, _id: p.id, _new: false, price: (p.price_cents / 100).toFixed(2), notes: Array.isArray(p.notes) ? p.notes.join(', ') : '' })
+  }
+  function openNew() {
+    setEditing({ _new: true, category: 'coffee', fit: 'contain', active: true, price: '', name: '' })
+  }
+
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
 
   // Unify subscription-delivery orders and one-off shop orders into one list.
@@ -316,7 +359,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['classes','Classes'], ['promos','Promo Codes']].map(([v, l]) => (
+          {[['dashboard','Overview'], ['orders','Orders'], ['products','Products'], ['subscriptions','Subscriptions'], ['classes','Classes'], ['promos','Promo Codes']].map(([v, l]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
           ))}
         </div>
@@ -472,6 +515,43 @@ function AdminDashboard({ auth, onLogout }) {
                   {allOrders.length === 0 && (
                     <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
                   )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Products (catalogue) */}
+        {view === 'products' && (
+          <div className="admin-section">
+            <div className="admin-section-header">
+              <h2 className="admin-section-title">PRODUCTS</h2>
+              <button className="admin-action-btn" onClick={openNew}>+ Add product</button>
+            </div>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {catalog.map(p => (
+                    <tr key={p.id}>
+                      <td style={{ width: 52 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: '#fff', border: '1px solid #eee', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {p.image && <img src={p.image} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: p.fit === 'cover' ? 'cover' : 'contain' }} />}
+                        </div>
+                      </td>
+                      <td><div className="td-name">{p.name}</div><div className="td-email">{p.sub || ''}</div></td>
+                      <td style={{ textTransform: 'capitalize' }}>{p.category}</td>
+                      <td>${(p.price_cents / 100).toFixed(2)}</td>
+                      <td><span className={`status-badge status-${p.active ? 'active' : 'cancelled'}`}>{p.active ? 'active' : 'hidden'}</span></td>
+                      <td>
+                        <div className="admin-row-actions">
+                          <button className="admin-action-btn" onClick={() => openEdit(p)}>Edit</button>
+                          <button className="admin-action-btn danger" onClick={() => deleteProduct(p.id)}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {catalog.length === 0 && <tr><td colSpan={6} className="admin-empty-row">No products yet</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -694,7 +774,63 @@ function AdminDashboard({ auth, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* Add / edit product modal */}
+      {editing && (
+        <div onClick={() => setEditing(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,10,10,0.5)', zIndex: 200, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 16px', overflowY: 'auto' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 620, boxShadow: '0 24px 70px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #eee' }}>
+              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 20, color: 'var(--red)' }}>{editing._new ? 'Add product' : 'Edit product'}</div>
+              <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', fontSize: 22, color: 'var(--mid)', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ padding: 24, display: 'grid', gap: 14, gridTemplateColumns: '1fr 1fr' }}>
+              <Field label="Name" span2 value={editing.name} onChange={v => setEditing(e => ({ ...e, name: v }))} />
+              <SelectField label="Category" value={editing.category} options={['coffee', 'accessories', 'classes']} onChange={v => setEditing(e => ({ ...e, category: v }))} />
+              <Field label="Price ($)" type="number" value={editing.price} onChange={v => setEditing(e => ({ ...e, price: v }))} />
+              <Field label="Subtitle (blend / tagline)" span2 value={editing.sub} onChange={v => setEditing(e => ({ ...e, sub: v }))} />
+              <Field label="Weight (e.g. 250g)" value={editing.weight} onChange={v => setEditing(e => ({ ...e, weight: v }))} />
+              <SelectField label="Image fit" value={editing.fit} options={['contain', 'cover']} onChange={v => setEditing(e => ({ ...e, fit: v }))} />
+              <Field label="Image URL / path" span2 value={editing.image} onChange={v => setEditing(e => ({ ...e, image: v }))} placeholder="/products/onesto.png or https://…" />
+              <Field label="Origin" value={editing.origin} onChange={v => setEditing(e => ({ ...e, origin: v }))} />
+              <Field label="Roast" value={editing.roast} onChange={v => setEditing(e => ({ ...e, roast: v }))} />
+              <Field label="Blurb" span2 textarea value={editing.blurb} onChange={v => setEditing(e => ({ ...e, blurb: v }))} />
+              <Field label="Tasting notes (comma separated)" span2 value={editing.notes} onChange={v => setEditing(e => ({ ...e, notes: v }))} />
+              <Field label="Rating (0–5)" type="number" value={editing.rating} onChange={v => setEditing(e => ({ ...e, rating: v }))} />
+              <Field label="Reviews" type="number" value={editing.reviews} onChange={v => setEditing(e => ({ ...e, reviews: v }))} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--dark)' }}>
+                <input type="checkbox" checked={editing.active !== false} onChange={e => setEditing(x => ({ ...x, active: e.target.checked }))} /> Visible in shop
+              </label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '0 24px 24px' }}>
+              <button className="admin-action-btn" onClick={() => setEditing(null)}>Cancel</button>
+              <button className="admin-action-btn" style={{ background: 'var(--red)', color: '#fff' }} onClick={saveProduct}>{editing._new ? 'Create product' : 'Save changes'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function Field({ label, value, onChange, type = 'text', span2, textarea, placeholder }) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--mid)', gridColumn: span2 ? '1 / -1' : 'auto' }}>
+      {label}
+      {textarea
+        ? <textarea className="tracking-input" rows={2} value={value || ''} placeholder={placeholder} onChange={e => onChange(e.target.value)} />
+        : <input className="tracking-input" type={type} value={value ?? ''} placeholder={placeholder} onChange={e => onChange(e.target.value)} />}
+    </label>
+  )
+}
+
+function SelectField({ label, value, options, onChange }) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--mid)' }}>
+      {label}
+      <select className="tracking-input" value={value} onChange={e => onChange(e.target.value)}>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </label>
   )
 }
 

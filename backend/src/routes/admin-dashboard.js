@@ -302,4 +302,78 @@ router.get('/class-sessions/:id/bookings', adminAuth, async (req, res) => {
   }
 });
 
+// ── Product catalogue (admin) ────────────────────────────────────────────────
+const CATALOG_FIELDS = ['category', 'name', 'sub', 'weight', 'price_cents', 'image', 'fit', 'blurb', 'origin', 'roast', 'notes', 'rating', 'reviews', 'active', 'sort'];
+
+function slugify(s) {
+  return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+router.get('/shop-products', adminAuth, async (req, res) => {
+  try {
+    const r = await db.query('SELECT * FROM shop_products ORDER BY sort ASC, name ASC');
+    res.json(r.rows);
+  } catch (err) {
+    console.error('Catalogue list error:', err);
+    res.status(500).json({ error: 'Failed to load products' });
+  }
+});
+
+router.post('/shop-products', adminAuth, async (req, res) => {
+  const b = req.body || {};
+  if (!b.name || !b.price_cents) return res.status(400).json({ error: 'Name and price are required' });
+  const id = (b.id && slugify(b.id)) || slugify(b.name);
+  if (!id) return res.status(400).json({ error: 'Could not derive a product id' });
+  try {
+    const r = await db.query(
+      `INSERT INTO shop_products (id, category, name, sub, weight, price_cents, image, fit, blurb, origin, roast, notes, rating, reviews, active, sort)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,COALESCE($15,TRUE),COALESCE($16,0)) RETURNING *`,
+      [id, b.category || 'coffee', b.name, b.sub || null, b.weight || null, parseInt(b.price_cents, 10),
+        b.image || null, b.fit || 'contain', b.blurb || null, b.origin || null, b.roast || null,
+        b.notes ? JSON.stringify(Array.isArray(b.notes) ? b.notes : String(b.notes).split(',').map(s => s.trim()).filter(Boolean)) : null,
+        b.rating || null, b.reviews || null, typeof b.active === 'boolean' ? b.active : null, b.sort ?? null]
+    );
+    res.json(r.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'A product with that id already exists' });
+    console.error('Catalogue create error:', err);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
+router.patch('/shop-products/:id', adminAuth, async (req, res) => {
+  const b = req.body || {};
+  const sets = [];
+  const vals = [];
+  let i = 1;
+  for (const f of CATALOG_FIELDS) {
+    if (b[f] === undefined) continue;
+    let v = b[f];
+    if (f === 'notes') v = v ? JSON.stringify(Array.isArray(v) ? v : String(v).split(',').map(s => s.trim()).filter(Boolean)) : null;
+    if (f === 'price_cents' || f === 'reviews' || f === 'sort') v = v === null ? null : parseInt(v, 10);
+    sets.push(`${f} = $${i++}`);
+    vals.push(v);
+  }
+  if (sets.length === 0) return res.status(400).json({ error: 'Nothing to update' });
+  vals.push(req.params.id);
+  try {
+    const r = await db.query(`UPDATE shop_products SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`, vals);
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    res.json(r.rows[0]);
+  } catch (err) {
+    console.error('Catalogue update error:', err);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+router.delete('/shop-products/:id', adminAuth, async (req, res) => {
+  try {
+    await db.query('DELETE FROM shop_products WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Catalogue delete error:', err);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
 module.exports = { router, adminAuth };

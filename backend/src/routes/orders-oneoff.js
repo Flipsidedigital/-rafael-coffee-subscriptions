@@ -46,16 +46,25 @@ async function validatePromo(rawCode, subtotalCents) {
   return { valid: true, code: p.code, kind: p.kind, value: p.value, discount_cents: discount };
 }
 
-function priceCart(items) {
+async function priceCart(items) {
+  // Prices come from the DB catalogue; fall back to the hardcoded map so the
+  // known SKUs keep working even before the catalogue table is populated.
+  const ids = items.map((i) => i?.id).filter(Boolean);
+  const map = {};
+  try {
+    const { rows } = await db.query('SELECT id, name, price_cents FROM shop_products WHERE id = ANY($1) AND active = TRUE', [ids]);
+    rows.forEach((r) => { map[r.id] = { price_cents: r.price_cents, name: r.name }; });
+  } catch { /* table may not exist yet — fall back below */ }
+
   let subtotal = 0;
   const lineItems = [];
   for (const it of items) {
-    const unit = PRICE_CENTS[it?.id];
+    const p = map[it?.id] || (PRICE_CENTS[it?.id] ? { price_cents: PRICE_CENTS[it.id], name: NAMES[it.id] || it.id } : null);
     const qty = parseInt(it?.qty, 10);
-    if (!unit) return { error: `Unknown product: ${it?.id}` };
+    if (!p) return { error: `Unknown product: ${it?.id}` };
     if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) return { error: 'Invalid quantity' };
-    subtotal += unit * qty;
-    lineItems.push({ id: it.id, name: NAMES[it.id] || it.id, qty, unit_cents: unit });
+    subtotal += p.price_cents * qty;
+    lineItems.push({ id: it.id, name: p.name, qty, unit_cents: p.price_cents });
   }
   return { subtotal, lineItems };
 }
@@ -82,7 +91,7 @@ router.post('/one-off', async (req, res) => {
     return res.status(400).json({ error: 'Missing shipping address' });
   }
 
-  const priced = priceCart(items);
+  const priced = await priceCart(items);
   if (priced.error) return res.status(400).json({ error: priced.error });
   const { subtotal, lineItems } = priced;
   const shipping_cents = subtotal >= FREE_SHIPPING_CENTS ? 0 : FLAT_SHIPPING_CENTS;
