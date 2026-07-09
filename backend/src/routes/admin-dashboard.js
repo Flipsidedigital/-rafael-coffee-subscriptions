@@ -152,4 +152,36 @@ router.patch('/subscriptions/:id/status', adminAuth, async (req, res) => {
   }
 });
 
+// GET /api/admin/shop-orders — one-off (non-subscription) shop orders
+router.get('/shop-orders', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM shop_orders ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Shop orders error:', err);
+    res.status(500).json({ error: 'Failed to load shop orders' });
+  }
+});
+
+// PATCH /api/admin/shop-orders/:id — update status / tracking (fulfilment)
+router.patch('/shop-orders/:id', adminAuth, async (req, res) => {
+  const { status, tracking_number, tracking_carrier } = req.body;
+  try {
+    const result = await db.query(
+      `UPDATE shop_orders
+         SET tracking_number = COALESCE($1, tracking_number),
+             tracking_carrier = COALESCE($2, tracking_carrier),
+             status = COALESCE($3, status),
+             shipped_at = CASE WHEN $3 = 'shipped' AND shipped_at IS NULL THEN NOW() ELSE shipped_at END
+       WHERE id = $4 RETURNING *`,
+      [tracking_number ?? null, tracking_carrier ?? null, status ?? null, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Shop order update error:', err);
+    res.status(500).json({ error: 'Failed to update order' });
+  }
+});
+
 module.exports = { router, adminAuth };

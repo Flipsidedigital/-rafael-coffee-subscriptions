@@ -320,4 +320,24 @@ router.post("/cancel", authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/portal/shop-orders — one-off shop orders for the logged-in customer
+// (matched by email, since guest checkout stores email rather than customer_id)
+router.get("/shop-orders", authMiddleware, async (req, res) => {
+  try {
+    const cust = await db.query("SELECT email FROM customers WHERE id = $1", [req.customer.id]);
+    const email = cust.rows[0]?.email;
+    if (!email) return res.json([]);
+    const result = await db.query(
+      `SELECT id, order_number, items, subtotal_cents, shipping_cents, amount_cents,
+              status, tracking_number, tracking_carrier, created_at
+         FROM shop_orders WHERE lower(email) = lower($1) ORDER BY created_at DESC`,
+      [email]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Portal shop-orders error:", err);
+    res.status(500).json({ error: "Failed to load orders" });
+  }
+});
+
 module.exports = router;

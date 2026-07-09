@@ -218,6 +218,7 @@ function Dashboard({ token, customer, onLogout }) {
   const [error, setError] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [actionSuccess, setActionSuccess] = useState(null)
+  const [shopOrders, setShopOrders] = useState([])
 
   useEffect(() => {
     fetchData()
@@ -231,6 +232,10 @@ function Dashboard({ token, customer, onLogout }) {
       if (!res.ok) throw new Error('Failed to load')
       const json = await res.json()
       setData(json)
+      try {
+        const so = await fetch(`${API_URL}/api/portal/shop-orders`, { headers: { 'Authorization': `Bearer ${token}` } })
+        if (so.ok) setShopOrders(await so.json())
+      } catch { /* non-fatal */ }
     } catch (err) {
       setError('Failed to load your subscription details.')
     } finally {
@@ -314,6 +319,28 @@ function Dashboard({ token, customer, onLogout }) {
                     )}
                     <span className="order-amount">${(order.amount_cents / 100).toFixed(2)}</span>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {shopOrders.length > 0 && (
+          <div className="portal-section">
+            <h2 className="portal-section-title">YOUR ORDERS</h2>
+            <div style={{ display: 'grid', gap: 12 }}>
+              {shopOrders.map(o => (
+                <div key={o.id} style={{ border: '1px solid rgba(64,32,32,0.12)', borderRadius: 10, padding: 16, background: '#fff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <strong style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.05em' }}>#{o.order_number}</strong>
+                    <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 8px', borderRadius: 999, background: 'rgba(64,32,32,0.08)', color: 'var(--red)', fontWeight: 600 }}>{o.status}</span>
+                  </div>
+                  <div style={{ color: 'var(--dark)', fontSize: 14 }}>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, color: 'var(--mid)', fontSize: 13 }}>
+                    <span>{new Date(o.created_at).toLocaleDateString('en-AU')}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--red)' }}>${(o.amount_cents / 100).toFixed(2)}</span>
+                  </div>
+                  {o.tracking_number && <div style={{ marginTop: 8, fontSize: 13, color: 'var(--dark)' }}>📦 Tracking: {o.tracking_number}{o.tracking_carrier ? ` · ${o.tracking_carrier}` : ''}</div>}
                 </div>
               ))}
             </div>

@@ -77,6 +77,8 @@ function AdminDashboard({ auth, onLogout }) {
   const [trackingInput, setTrackingInput] = useState({})
   const [actionMsg, setActionMsg] = useState(null)
   const [subFilter, setSubFilter] = useState('all')
+  const [shopOrders, setShopOrders] = useState([])
+  const [shopTracking, setShopTracking] = useState({})
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -85,14 +87,16 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords] = await Promise.all([
+      const [dash, subs, ords, shop] = await Promise.all([
         fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/api/admin/shop-orders`, { headers }).then(r => r.json()),
       ])
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
       setOrders(Array.isArray(ords) ? ords : [])
+      setShopOrders(Array.isArray(shop) ? shop : [])
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -128,6 +132,18 @@ function AdminDashboard({ auth, onLogout }) {
     }
   }
 
+  async function updateShopOrder(orderId, body) {
+    try {
+      await fetch(`${API_URL}/api/admin/shop-orders/${orderId}`, {
+        method: 'PATCH', headers, body: JSON.stringify(body),
+      })
+      setActionMsg('Order updated')
+      fetchAll()
+    } catch (err) {
+      setError('Failed to update order')
+    }
+  }
+
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
 
   return (
@@ -136,7 +152,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders']].map(([v, l]) => (
+          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['shop-orders','Shop Orders']].map(([v, l]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
           ))}
         </div>
@@ -301,6 +317,71 @@ function AdminDashboard({ auth, onLogout }) {
                   ))}
                   {orders.length === 0 && (
                     <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Shop Orders (one-off) */}
+        {view === 'shop-orders' && (
+          <div className="admin-section">
+            <h2 className="admin-section-title">SHOP ORDERS</h2>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Delivery Address</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Tracking</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shopOrders.map(o => (
+                    <tr key={o.id}>
+                      <td className="td-name">{o.order_number}</td>
+                      <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
+                      <td>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</td>
+                      <td><div className="td-address">{o.shipping_address_1}<br />{o.shipping_suburb} {o.shipping_state} {o.shipping_postcode}</div></td>
+                      <td>${(o.amount_cents / 100).toFixed(2)}</td>
+                      <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
+                      <td>
+                        {o.tracking_number ? (
+                          <div className="tracking-display">
+                            <span className="tracking-number">{o.tracking_number}</span>
+                            {o.tracking_carrier && <span className="td-email">{o.tracking_carrier}</span>}
+                          </div>
+                        ) : (
+                          <div className="tracking-input-group">
+                            <input
+                              type="text" placeholder="Tracking #" className="tracking-input"
+                              value={shopTracking[o.id]?.number || ''}
+                              onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], number: e.target.value } }))}
+                            />
+                            <input
+                              type="text" placeholder="Carrier" className="tracking-input carrier"
+                              value={shopTracking[o.id]?.carrier || ''}
+                              onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], carrier: e.target.value } }))}
+                            />
+                            <button
+                              className="admin-action-btn"
+                              disabled={!shopTracking[o.id]?.number}
+                              onClick={() => updateShopOrder(o.id, { tracking_number: shopTracking[o.id]?.number, tracking_carrier: shopTracking[o.id]?.carrier, status: 'shipped' })}
+                            >Ship</button>
+                          </div>
+                        )}
+                      </td>
+                      <td>{new Date(o.created_at).toLocaleDateString('en-AU')}</td>
+                    </tr>
+                  ))}
+                  {shopOrders.length === 0 && (
+                    <tr><td colSpan={8} className="admin-empty-row">No shop orders yet</td></tr>
                   )}
                 </tbody>
               </table>
