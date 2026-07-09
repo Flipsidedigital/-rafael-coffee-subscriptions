@@ -146,8 +146,41 @@ function AdminDashboard({ auth, onLogout }) {
   }
 
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
+
+  // Unify subscription-delivery orders and one-off shop orders into one list.
+  // Subscription orders get a synthesised single line item so the shared table
+  // + detail modal render uniformly.
+  const allOrders = [
+    ...shopOrders.map(o => ({ ...o, _type: 'shop' })),
+    ...orders.map(o => ({
+      ...o,
+      _type: 'subscription',
+      order_number: `SUB-${String(o.id || '').slice(0, 6).toUpperCase()}`,
+      items: [{ name: `${o.product_name} · ${o.quantity_grams}g · ${o.frequency}`, qty: 1, unit_cents: o.amount_cents }],
+      subtotal_cents: o.amount_cents,
+      shipping_cents: 0,
+    })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
   // Re-derive from the latest fetch so the modal reflects status/tracking updates.
-  const activeOrder = selectedOrder ? (shopOrders.find(o => o.id === selectedOrder.id) || selectedOrder) : null
+  const activeOrder = selectedOrder ? (allOrders.find(o => o.id === selectedOrder.id) || selectedOrder) : null
+
+  async function shipOrder(order, number, carrier) {
+    if (!number) return
+    const url = order._type === 'shop'
+      ? `${API_URL}/api/admin/shop-orders/${order.id}`
+      : `${API_URL}/api/admin/orders/${order.id}/tracking`
+    const body = order._type === 'shop'
+      ? { tracking_number: number, tracking_carrier: carrier, status: 'shipped' }
+      : { tracking_number: number, tracking_carrier: carrier }
+    try {
+      await fetch(url, { method: 'PATCH', headers, body: JSON.stringify(body) })
+      setActionMsg('Order updated')
+      fetchAll()
+    } catch (err) {
+      setError('Failed to update order')
+    }
+  }
 
   return (
     <div className="admin">
@@ -155,7 +188,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['shop-orders','Shop Orders']].map(([v, l]) => (
+          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders']].map(([v, l]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
           ))}
         </div>
@@ -264,7 +297,7 @@ function AdminDashboard({ auth, onLogout }) {
           </div>
         )}
 
-        {/* Orders */}
+        {/* Orders — subscription deliveries + one-off shop orders, unified */}
         {view === 'orders' && (
           <div className="admin-section">
             <h2 className="admin-section-title">ORDERS</h2>
@@ -272,119 +305,33 @@ function AdminDashboard({ auth, onLogout }) {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Customer</th>
-                    <th>Coffee</th>
-                    <th>Delivery Address</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Tracking</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(o => (
-                    <tr key={o.id}>
-                      <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
-                      <td>{o.product_name}<br /><span className="td-email">{o.quantity_grams}g · {o.frequency}</span></td>
-                      <td><div className="td-address">{o.shipping_address_1}<br />{o.shipping_suburb} {o.shipping_state} {o.shipping_postcode}</div></td>
-                      <td>${(o.amount_cents / 100).toFixed(2)}</td>
-                      <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
-                      <td>
-                        {o.tracking_number ? (
-                          <div className="tracking-display">
-                            <span className="tracking-number">{o.tracking_number}</span>
-                            {o.tracking_carrier && <span className="td-email">{o.tracking_carrier}</span>}
-                          </div>
-                        ) : (
-                          <div className="tracking-input-group">
-                            <input
-                              type="text"
-                              placeholder="Tracking #"
-                              className="tracking-input"
-                              value={trackingInput[o.id]?.number || ''}
-                              onChange={e => setTrackingInput(t => ({ ...t, [o.id]: { ...t[o.id], number: e.target.value } }))}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Carrier"
-                              className="tracking-input carrier"
-                              value={trackingInput[o.id]?.carrier || ''}
-                              onChange={e => setTrackingInput(t => ({ ...t, [o.id]: { ...t[o.id], carrier: e.target.value } }))}
-                            />
-                            <button className="admin-action-btn" onClick={() => updateTracking(o.id)}>Save</button>
-                          </div>
-                        )}
-                      </td>
-                      <td>{new Date(o.created_at).toLocaleDateString('en-AU')}</td>
-                    </tr>
-                  ))}
-                  {orders.length === 0 && (
-                    <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Shop Orders (one-off) */}
-        {view === 'shop-orders' && (
-          <div className="admin-section">
-            <h2 className="admin-section-title">SHOP ORDERS</h2>
-            <div className="admin-table-wrap">
-              <table className="admin-table">
-                <thead>
-                  <tr>
                     <th>Order</th>
+                    <th>Type</th>
                     <th>Customer</th>
-                    <th>Items</th>
-                    <th>Delivery Address</th>
+                    <th>Summary</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Tracking</th>
                     <th>Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {shopOrders.map(o => (
-                    <tr key={o.id} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
+                  {allOrders.map(o => (
+                    <tr key={`${o._type}-${o.id}`} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
                       <td className="td-name">{o.order_number}</td>
+                      <td>
+                        <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '3px 9px', borderRadius: 999, fontWeight: 600, whiteSpace: 'nowrap', background: o._type === 'subscription' ? 'rgba(176,137,91,0.16)' : 'rgba(64,32,32,0.08)', color: o._type === 'subscription' ? '#8a6033' : 'var(--red)' }}>
+                          {o._type === 'subscription' ? 'Subscription' : 'Shop'}
+                        </span>
+                      </td>
                       <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
                       <td>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</td>
-                      <td><div className="td-address">{o.shipping_address_1}<br />{o.shipping_suburb} {o.shipping_state} {o.shipping_postcode}</div></td>
                       <td>${(o.amount_cents / 100).toFixed(2)}</td>
                       <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
-                      <td onClick={e => e.stopPropagation()}>
-                        {o.tracking_number ? (
-                          <div className="tracking-display">
-                            <span className="tracking-number">{o.tracking_number}</span>
-                            {o.tracking_carrier && <span className="td-email">{o.tracking_carrier}</span>}
-                          </div>
-                        ) : (
-                          <div className="tracking-input-group">
-                            <input
-                              type="text" placeholder="Tracking #" className="tracking-input"
-                              value={shopTracking[o.id]?.number || ''}
-                              onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], number: e.target.value } }))}
-                            />
-                            <input
-                              type="text" placeholder="Carrier" className="tracking-input carrier"
-                              value={shopTracking[o.id]?.carrier || ''}
-                              onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], carrier: e.target.value } }))}
-                            />
-                            <button
-                              className="admin-action-btn"
-                              disabled={!shopTracking[o.id]?.number}
-                              onClick={() => updateShopOrder(o.id, { tracking_number: shopTracking[o.id]?.number, tracking_carrier: shopTracking[o.id]?.carrier, status: 'shipped' })}
-                            >Ship</button>
-                          </div>
-                        )}
-                      </td>
                       <td>{new Date(o.created_at).toLocaleDateString('en-AU')}</td>
                     </tr>
                   ))}
-                  {shopOrders.length === 0 && (
-                    <tr><td colSpan={8} className="admin-empty-row">No shop orders yet</td></tr>
+                  {allOrders.length === 0 && (
+                    <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
                   )}
                 </tbody>
               </table>
@@ -470,7 +417,7 @@ function AdminDashboard({ auth, onLogout }) {
                         value={shopTracking[activeOrder.id]?.carrier || ''}
                         onChange={e => setShopTracking(t => ({ ...t, [activeOrder.id]: { ...t[activeOrder.id], carrier: e.target.value } }))} />
                       <button className="admin-action-btn" disabled={!shopTracking[activeOrder.id]?.number}
-                        onClick={() => updateShopOrder(activeOrder.id, { tracking_number: shopTracking[activeOrder.id]?.number, tracking_carrier: shopTracking[activeOrder.id]?.carrier, status: 'shipped' })}>
+                        onClick={() => shipOrder(activeOrder, shopTracking[activeOrder.id]?.number, shopTracking[activeOrder.id]?.carrier)}>
                         Mark shipped
                       </button>
                     </div>
