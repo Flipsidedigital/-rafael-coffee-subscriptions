@@ -35,9 +35,9 @@ export function SectionHeading({ eyebrow, title, italic, align = 'center' }) {
   return (
     <div className={align === 'center' ? 'text-center' : ''}>
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 className="mt-3 font-heading text-3xl font-bold uppercase leading-tight tracking-[0.02em] text-maroon sm:text-4xl">
+      <h2 className="mt-2 font-heading text-4xl font-extrabold uppercase leading-none tracking-tight text-ink sm:text-5xl">
         {title}{' '}
-        {italic && <span className="font-normal text-mid">{italic}</span>}
+        {italic && <span className="font-serif text-4xl font-normal normal-case italic tracking-normal text-maroon sm:text-5xl">{italic}</span>}
       </h2>
     </div>
   );

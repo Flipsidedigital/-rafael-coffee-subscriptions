@@ -70,7 +70,7 @@ export default function Shop() {
 /* =================================================================== Chrome */
 function AnnounceBar() {
   return (
-    <div className="bg-maroon text-cream">
+    <div className="bg-espresso text-cream">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center font-heading text-[11px] font-medium uppercase tracking-[0.28em]">
         Freshly roasted in the Macedon Ranges · Complimentary shipping over $60
       </p>
@@ -232,18 +232,21 @@ function ShopListing({ subscriber, navigate }) {
 function Hero({ navigate }) {
   return (
     <section className="relative overflow-hidden bg-cream">
-      {/* soft warm glow */}
+      {/* soft glow */}
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(80% 65% at 82% 5%, rgba(124,48,70,0.07), transparent 60%)' }}
+        style={{ background: 'radial-gradient(80% 65% at 82% 5%, rgba(64,32,32,0.06), transparent 60%)' }}
       />
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
-          <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-brass">
+          <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-maroon">
             Lancefield · Victoria
           </p>
-          <h1 className="mt-5 font-heading text-4xl font-bold uppercase leading-[1.08] tracking-[0.01em] text-maroon sm:text-5xl">
-            Coffee worth<br />slowing down for
+          <h1 className="mt-4 font-heading text-5xl font-extrabold uppercase leading-[0.95] tracking-tight text-ink sm:text-6xl">
+            Coffee worth
+            <span className="mt-1 block font-serif text-5xl font-normal normal-case italic tracking-normal text-maroon sm:text-6xl">
+              slowing down for
+            </span>
           </h1>
           <p className="mt-6 max-w-md text-base leading-relaxed text-ink/70">
             Roasted by hand in the Macedon Ranges, in small batches, the day it ships.
@@ -296,7 +299,7 @@ function TrustStrip() {
     ['★ 4.9 rating', 'from 500+ happy locals'],
   ];
   return (
-    <section className="border-y border-maroon/10 bg-porcelain">
+    <section className="border-y border-maroon/10 bg-stone">
       <div className="mx-auto grid max-w-6xl grid-cols-2 divide-y divide-maroon/10 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         {items.map(([title, sub]) => (
           <div key={title} className="px-4 py-6 text-center">
@@ -335,7 +338,7 @@ function ProductCard({ product, subscriber, navigate }) {
       </button>
 
       <div className="mt-4 flex flex-1 flex-col">
-        <h3 className="font-heading text-sm font-semibold uppercase leading-snug tracking-[0.03em] text-maroon">
+        <h3 className="font-heading text-base font-bold uppercase leading-snug tracking-[0.02em] text-ink">
           {product.name}
         </h3>
         <p className="mt-1 text-xs text-mid">{product.sub}{product.weight ? ` · ${product.weight}` : ''}</p>
@@ -376,8 +379,8 @@ function SubscriptionTeaser({ navigate }) {
           <p className="font-heading text-xs font-semibold uppercase tracking-[0.32em] text-brass">
             Never run out
           </p>
-          <h2 className="mt-4 font-heading text-3xl font-bold uppercase leading-tight tracking-[0.02em] text-maroon sm:text-4xl">
-            Subscribe &amp; save ten percent
+          <h2 className="mt-4 font-heading text-4xl font-extrabold uppercase leading-none tracking-tight text-ink sm:text-5xl">
+            Subscribe &amp; save <span className="font-serif font-normal normal-case italic text-maroon">ten percent</span>
           </h2>
           <p className="mt-5 max-w-md text-ink/70">
             The freshest way to drink Rafael's. Delivered fortnightly, three-weekly or monthly —
@@ -578,7 +581,7 @@ function ComingSoon({ category }) {
   return (
     <div className="rounded-2xl border border-dashed border-maroon/25 bg-white px-6 py-20 text-center">
       <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass">Just roasting the details</p>
-      <p className="mt-3 font-heading text-2xl font-bold uppercase tracking-[0.02em] text-maroon sm:text-3xl">
+      <p className="mt-3 font-heading text-2xl font-extrabold uppercase tracking-tight text-ink sm:text-3xl">
         {label} — Coming Soon
       </p>
       <p className="mx-auto mt-3 max-w-md text-mid">{copy}</p>

@@ -3,38 +3,35 @@
  * Preflight (Tailwind's global base reset) is intentionally NOT imported so the
  * existing custom-CSS pages are left untouched. The App.css global reset lives
  * in @layer base so these layered utilities can override it on shop pages.
+ * Fonts (Barlow Condensed / Barlow / Playfair Display) are loaded by App.css.
  */
 @layer theme, base, components, utilities;
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..800;1,400..600&display=swap');
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
 @theme {
-  /* Palette taken from the packaging: cream label, black text, burgundy script.
-     Light & inviting — burgundy is the accent, not a heavy background. */
-  --color-maroon: #7c3046; /* logo burgundy — primary accent/ink */
-  --color-maroon-light: #94394f; /* hover */
-  --color-espresso: #3a1a22; /* rare deep accent */
-  --color-ink: #2b2b2b; /* near-black body text, like the label */
-  --color-stone: #ece7e1; /* soft warm neutral for panels/borders */
-  --color-stone-dark: #ded7cf;
-  --color-cream: #faf7f2; /* light warm page base */
+  /* Original Rafael's Coffee brand palette (matches the /about page). */
+  --color-maroon: #402020; /* brand maroon — accents, buttons */
+  --color-maroon-light: #5c2d2d;
+  --color-espresso: #262626; /* charcoal (dark bars) */
+  --color-ink: #262626; /* heading / body dark */
+  --color-stone: #d6d1ca; /* greige section bands */
+  --color-stone-dark: #c4bdb5;
+  --color-cream: #ffffff; /* white page base */
   --color-porcelain: #ffffff; /* white cards */
-  --color-brass: #a25b6b; /* soft dusty-rose accent (was gold) */
-  --color-brass-soft: #c08a97;
-  --color-mid: #877b76; /* warm grey secondary text */
-  --color-muted: #a89f99;
+  --color-brass: #402020; /* maroon accents (brand has no gold) */
+  --color-brass-soft: #7a6a58;
+  --color-mid: #7a6a58; /* muted brown-grey secondary text */
+  --color-muted: #9a8a78;
 
-  /* Standardised on one typeface (Montserrat) across the whole shop. */
-  --font-heading: 'Montserrat', sans-serif;
-  --font-body: 'Montserrat', sans-serif;
-  --font-serif: 'Montserrat', sans-serif;
+  /* Original brand type. */
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-serif: 'Playfair Display', serif;
 }
 
-/* Scoped element reset for the shop. Preflight isn't imported (to protect the
-   existing custom-CSS pages), so bare <button>/<input> elements would otherwise
-   show native browser chrome. Scoped to .shop-root and placed in @layer base so
-   Tailwind utility classes (bg-maroon, border, px-*, font-*) still override it. */
+/* Scoped element reset for the shop (preflight isn't imported). Scoped to
+   .shop-root and in @layer base so utility classes still override it. */
 @layer base {
   .shop-root button {
     -webkit-appearance: none;
