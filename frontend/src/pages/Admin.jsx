@@ -66,6 +66,51 @@ function StatCard({ label, value, sub, colour }) {
   )
 }
 
+function MetricCard({ icon, iconBg, label, value, sub }) {
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
+      <div style={{ marginTop: 16, fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 12, color: 'var(--mid)' }}>{label}</div>
+      <div style={{ marginTop: 4, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.1 }}>{value}</div>
+      {sub && <div style={{ marginTop: 4, fontSize: 12, color: 'var(--mid)' }}>{sub}</div>}
+    </div>
+  )
+}
+
+function BreakdownRow({ colour, label, value }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--dark)' }}>
+        <span style={{ width: 9, height: 9, borderRadius: 999, background: colour }} />{label}
+      </span>
+      <strong style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--dark)' }}>{value}</strong>
+    </div>
+  )
+}
+
+function MiniBarChart({ data }) {
+  const max = Math.max(1, ...data.map(d => d.cents))
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 150, marginTop: 16 }}>
+        {data.map(d => {
+          const h = Math.round((d.cents / max) * 100)
+          return (
+            <div key={d.day} title={`${d.day}: $${(d.cents / 100).toFixed(2)}`} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <div style={{ height: `${Math.max(h, 2)}%`, background: 'var(--red)', opacity: d.cents ? 1 : 0.15, borderRadius: '4px 4px 0 0' }} />
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: 'var(--mid)' }}>
+        <span>{data[0] ? data[0].day.slice(5) : ''}</span>
+        <span>Peak ${(max / 100).toFixed(0)}</span>
+        <span>{data.length ? data[data.length - 1].day.slice(5) : ''}</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 function AdminDashboard({ auth, onLogout }) {
   const [view, setView] = useState('dashboard')
@@ -283,50 +328,61 @@ function AdminDashboard({ auth, onLogout }) {
         {actionMsg && <div className="admin-success" onClick={() => setActionMsg(null)}>{actionMsg} ✕</div>}
         {loading && <div className="admin-loading">Loading...</div>}
 
-        {/* Overview */}
+        {/* Overview / Dashboard */}
         {view === 'dashboard' && dashData && (
           <div className="admin-section">
-            <h2 className="admin-section-title">OVERVIEW</h2>
-            <div className="stats-grid">
-              <StatCard label="Active Subscriptions" value={dashData.stats.active_subscriptions} colour="#276749" />
-              <StatCard label="Paused" value={dashData.stats.paused_subscriptions} colour="#C05621" />
-              <StatCard label="Cancelled" value={dashData.stats.cancelled_subscriptions} colour="#888" />
-              <StatCard label="Revenue (30 days)" value={`$${(dashData.stats.revenue_30_days / 100).toFixed(2)}`} sub="AUD" colour="var(--red)" />
+            <h2 className="admin-section-title">DASHBOARD</h2>
+
+            {/* KPI cards */}
+            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))' }}>
+              <MetricCard icon="💰" iconBg="rgba(64,32,32,0.1)" label="Revenue · 30 days" value={`$${(dashData.stats.revenue_30_days / 100).toFixed(2)}`} sub="Subs + shop + classes" />
+              <MetricCard icon="♻️" iconBg="rgba(39,103,73,0.12)" label="Active subscriptions" value={dashData.stats.active_subscriptions} sub={`${dashData.stats.paused_subscriptions} paused`} />
+              <MetricCard icon="🛍️" iconBg="rgba(43,108,176,0.12)" label="Shop orders" value={dashData.stats.shop_orders_total} sub={`$${(dashData.stats.shop_revenue_30_days / 100).toFixed(2)} in 30 days`} />
+              <MetricCard icon="🎓" iconBg="rgba(192,86,33,0.12)" label="Class seats booked" value={dashData.stats.class_seats_booked} sub={`${dashData.stats.upcoming_classes} upcoming`} />
             </div>
 
-            {dashData.recent_orders.length > 0 && (
-              <>
-                <h3 className="admin-sub-title">RECENT ORDERS</h3>
-                <div className="admin-table-wrap">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Customer</th>
-                        <th>Coffee</th>
-                        <th>Size</th>
-                        <th>Address</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashData.recent_orders.map(o => (
-                        <tr key={o.id}>
-                          <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
-                          <td>{o.product_name}</td>
-                          <td>{o.quantity_grams}g</td>
-                          <td><div className="td-address">{o.shipping_address_1}<br />{o.shipping_suburb} {o.shipping_state} {o.shipping_postcode}</div></td>
-                          <td>${(o.amount_cents / 100).toFixed(2)}</td>
-                          <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
-                          <td>{new Date(o.created_at).toLocaleDateString('en-AU')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* chart + breakdown */}
+            <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginTop: 16 }}>
+              <div style={{ gridColumn: 'span 2', minWidth: 280, background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)' }}>Revenue · last 14 days</h3>
+                  <span style={{ fontSize: 12, color: 'var(--mid)' }}>AUD</span>
                 </div>
-              </>
-            )}
+                <MiniBarChart data={dashData.revenue_series || []} />
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)', marginBottom: 14 }}>Subscriptions</h3>
+                <BreakdownRow colour="#2f855a" label="Active" value={dashData.stats.active_subscriptions} />
+                <BreakdownRow colour="#c05621" label="Paused" value={dashData.stats.paused_subscriptions} />
+                <BreakdownRow colour="#a0aec0" label="Cancelled" value={dashData.stats.cancelled_subscriptions} />
+                <div style={{ borderTop: '1px solid #eee', marginTop: 12, paddingTop: 12 }}>
+                  <BreakdownRow colour="var(--red)" label="Active promo codes" value={dashData.stats.active_promos} />
+                </div>
+              </div>
+            </div>
+
+            {/* recent orders */}
+            <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20, marginTop: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)', marginBottom: 12 }}>Recent orders</h3>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead><tr><th>Order</th><th>Type</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                  <tbody>
+                    {allOrders.slice(0, 6).map(o => (
+                      <tr key={`${o._type}-${o.id}`} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
+                        <td className="td-name">{o.order_number}</td>
+                        <td><span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '3px 9px', borderRadius: 999, fontWeight: 600, background: o._type === 'subscription' ? 'rgba(176,137,91,0.16)' : 'rgba(64,32,32,0.08)', color: o._type === 'subscription' ? '#8a6033' : 'var(--red)' }}>{o._type === 'subscription' ? 'Subscription' : 'Shop'}</span></td>
+                        <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
+                        <td>${(o.amount_cents / 100).toFixed(2)}</td>
+                        <td><span className={`status-badge status-${o.status}`}>{o.status}</span></td>
+                        <td>{new Date(o.created_at).toLocaleDateString('en-AU')}</td>
+                      </tr>
+                    ))}
+                    {allOrders.length === 0 && <tr><td colSpan={6} className="admin-empty-row">No orders yet</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 

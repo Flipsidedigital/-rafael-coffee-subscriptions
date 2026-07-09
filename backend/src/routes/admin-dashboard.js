@@ -50,30 +50,44 @@ router.post('/login', async (req, res) => {
 
 // GET /api/admin/dashboard
 router.get('/dashboard', adminAuth, async (req, res) => {
+  const n = (r) => parseInt(r.rows[0].count ?? r.rows[0].total ?? 0, 10);
   try {
-    const [active, paused, cancelled, totalRevenue, recentOrders] = await Promise.all([
+    const [active, paused, cancelled, subRev, shopRev, classRev, shopCount, classCount, upcoming, activePromos, series] = await Promise.all([
       db.query("SELECT COUNT(*) FROM subscriptions WHERE status = 'active'"),
       db.query("SELECT COUNT(*) FROM subscriptions WHERE status = 'paused'"),
       db.query("SELECT COUNT(*) FROM subscriptions WHERE status = 'cancelled'"),
-      db.query("SELECT COALESCE(SUM(amount_cents), 0) as total FROM orders WHERE created_at > NOW() - INTERVAL '30 days'"),
-      db.query(`SELECT o.*, c.first_name, c.last_name, c.email, p.name as product_name,
-                s.shipping_name, s.shipping_address_1, s.shipping_suburb, s.shipping_state, s.shipping_postcode,
-                s.frequency, s.quantity_grams
-                FROM orders o
-                JOIN customers c ON c.id = o.customer_id
-                JOIN subscriptions s ON s.id = o.subscription_id
-                JOIN products p ON p.id = s.product_id
-                ORDER BY o.created_at DESC LIMIT 5`),
+      db.query("SELECT COALESCE(SUM(amount_cents),0) AS total FROM orders WHERE created_at > NOW() - INTERVAL '30 days'"),
+      db.query("SELECT COALESCE(SUM(amount_cents),0) AS total FROM shop_orders WHERE created_at > NOW() - INTERVAL '30 days'"),
+      db.query("SELECT COALESCE(SUM(amount_cents),0) AS total FROM class_bookings WHERE created_at > NOW() - INTERVAL '30 days'"),
+      db.query("SELECT COUNT(*) FROM shop_orders"),
+      db.query("SELECT COALESCE(SUM(seats),0) AS count FROM class_bookings WHERE status = 'confirmed'"),
+      db.query("SELECT COUNT(*) FROM class_sessions WHERE active = TRUE AND starts_at > NOW()"),
+      db.query("SELECT COUNT(*) FROM promo_codes WHERE active = TRUE"),
+      db.query(`
+        SELECT to_char(d, 'YYYY-MM-DD') AS day,
+          COALESCE((SELECT SUM(amount_cents) FROM orders WHERE created_at::date = d),0)
+          + COALESCE((SELECT SUM(amount_cents) FROM shop_orders WHERE created_at::date = d),0)
+          + COALESCE((SELECT SUM(amount_cents) FROM class_bookings WHERE created_at::date = d),0) AS cents
+        FROM generate_series(CURRENT_DATE - INTERVAL '13 days', CURRENT_DATE, INTERVAL '1 day') d
+        ORDER BY day`),
     ]);
 
+    const revenue_30_days = n(subRev) + n(shopRev) + n(classRev);
     res.json({
       stats: {
-        active_subscriptions: parseInt(active.rows[0].count),
-        paused_subscriptions: parseInt(paused.rows[0].count),
-        cancelled_subscriptions: parseInt(cancelled.rows[0].count),
-        revenue_30_days: parseInt(totalRevenue.rows[0].total),
+        active_subscriptions: n(active),
+        paused_subscriptions: n(paused),
+        cancelled_subscriptions: n(cancelled),
+        revenue_30_days,
+        subscription_revenue_30_days: n(subRev),
+        shop_revenue_30_days: n(shopRev),
+        class_revenue_30_days: n(classRev),
+        shop_orders_total: n(shopCount),
+        class_seats_booked: n(classCount),
+        upcoming_classes: n(upcoming),
+        active_promos: n(activePromos),
       },
-      recent_orders: recentOrders.rows,
+      revenue_series: series.rows.map((r) => ({ day: r.day, cents: parseInt(r.cents, 10) })),
     });
   } catch (err) {
     console.error('Dashboard error:', err);
