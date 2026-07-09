@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
 const squareClient = require('../config/square');
@@ -9,7 +10,6 @@ const router = express.Router();
 const PRICE_CENTS = {
   onesto: 1800, ipanema: 1800, llaneros: 1800, calabrian: 1800, equinox: 1800,
   guatemala: 2000, peru: 2000, decaf: 2000,
-  // accessories & classes
   airscape: 5500, silicone: 595, masterclass: 9900,
 };
 const NAMES = {
@@ -21,6 +21,7 @@ const NAMES = {
 const FREE_SHIPPING_CENTS = 6000; // $60 (mirrors frontend)
 const FLAT_SHIPPING_CENTS = 1000; // $10
 const MAX_QTY = 50;
+const SUBSCRIBER_DISCOUNT = 0.1; // 10% for logged-in customers
 
 function genOrderNumber() {
   const t = Date.now().toString(36).toUpperCase().slice(-5);
@@ -28,9 +29,51 @@ function genOrderNumber() {
   return `RC-${t}${r}`;
 }
 
+// Validate a promo code against a subtotal. Returns a preview (no side effects).
+async function validatePromo(rawCode, subtotalCents) {
+  const code = String(rawCode || '').trim().toUpperCase();
+  if (!code) return { valid: false, message: 'Enter a code' };
+  const { rows } = await db.query('SELECT * FROM promo_codes WHERE upper(code) = $1', [code]);
+  const p = rows[0];
+  if (!p || !p.active) return { valid: false, message: 'Invalid code' };
+  if (p.expires_at && new Date(p.expires_at) < new Date()) return { valid: false, message: 'This code has expired' };
+  if (p.max_uses != null && p.uses >= p.max_uses) return { valid: false, message: 'This code has reached its limit' };
+  if (subtotalCents < p.min_subtotal_cents) {
+    return { valid: false, message: `Spend $${(p.min_subtotal_cents / 100).toFixed(2)}+ to use this code` };
+  }
+  let discount = p.kind === 'percent' ? Math.round(subtotalCents * (p.value / 100)) : p.value;
+  discount = Math.min(discount, subtotalCents);
+  return { valid: true, code: p.code, kind: p.kind, value: p.value, discount_cents: discount };
+}
+
+function priceCart(items) {
+  let subtotal = 0;
+  const lineItems = [];
+  for (const it of items) {
+    const unit = PRICE_CENTS[it?.id];
+    const qty = parseInt(it?.qty, 10);
+    if (!unit) return { error: `Unknown product: ${it?.id}` };
+    if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) return { error: 'Invalid quantity' };
+    subtotal += unit * qty;
+    lineItems.push({ id: it.id, name: NAMES[it.id] || it.id, qty, unit_cents: unit });
+  }
+  return { subtotal, lineItems };
+}
+
+// POST /api/orders/validate-promo — preview a promo discount for the current cart
+router.post('/validate-promo', async (req, res) => {
+  try {
+    const subtotal = parseInt(req.body?.subtotal_cents, 10) || 0;
+    res.json(await validatePromo(req.body?.code, subtotal));
+  } catch (err) {
+    console.error('validate-promo error:', err.message);
+    res.status(500).json({ valid: false, message: 'Could not validate code' });
+  }
+});
+
 // POST /api/orders/one-off — public guest checkout for shop (one-off) orders.
 router.post('/one-off', async (req, res) => {
-  const { items, contact, shipping, card_token } = req.body || {};
+  const { items, contact, shipping, card_token, promo_code } = req.body || {};
 
   if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'Your cart is empty' });
   if (!card_token) return res.status(400).json({ error: 'Missing payment details' });
@@ -39,19 +82,28 @@ router.post('/one-off', async (req, res) => {
     return res.status(400).json({ error: 'Missing shipping address' });
   }
 
-  // Price everything server-side.
-  let subtotal = 0;
-  const lineItems = [];
-  for (const it of items) {
-    const unit = PRICE_CENTS[it?.id];
-    const qty = parseInt(it?.qty, 10);
-    if (!unit) return res.status(400).json({ error: `Unknown product: ${it?.id}` });
-    if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) return res.status(400).json({ error: 'Invalid quantity' });
-    subtotal += unit * qty;
-    lineItems.push({ id: it.id, name: NAMES[it.id] || it.id, qty, unit_cents: unit });
-  }
+  const priced = priceCart(items);
+  if (priced.error) return res.status(400).json({ error: priced.error });
+  const { subtotal, lineItems } = priced;
   const shipping_cents = subtotal >= FREE_SHIPPING_CENTS ? 0 : FLAT_SHIPPING_CENTS;
-  const amount_cents = subtotal + shipping_cents;
+
+  // Discounts — take the better of the subscriber perk and any promo code (no stacking).
+  let subscriberDiscount = 0;
+  const bearer = (req.headers['authorization'] || '').split(' ')[1];
+  if (bearer) {
+    try {
+      const decoded = jwt.verify(bearer, process.env.JWT_SECRET);
+      if (decoded?.id) subscriberDiscount = Math.round(subtotal * SUBSCRIBER_DISCOUNT);
+    } catch { /* not logged in — no perk */ }
+  }
+  let promo = { discount_cents: 0 };
+  if (promo_code) promo = await validatePromo(promo_code, subtotal);
+  const promoDiscount = promo.valid ? promo.discount_cents : 0;
+  const usePromo = promoDiscount > 0 && promoDiscount >= subscriberDiscount;
+  const discount_cents = Math.max(subscriberDiscount, promoDiscount);
+  const appliedCode = usePromo ? promo.code : null;
+
+  const amount_cents = Math.max(0, subtotal - discount_cents) + shipping_cents;
 
   // 1) Take the payment.
   let paymentId = null;
@@ -69,22 +121,24 @@ router.post('/one-off', async (req, res) => {
     return res.status(402).json({ error: sqMsg || 'Payment could not be processed. Please check your card and try again.' });
   }
 
-  // 2) Record the order (best-effort — the card is already charged, so never
-  //    fail the request here or the customer could be double-charged on retry).
+  // 2) Record the order (best-effort — card already charged; never fail here).
   const orderNumber = genOrderNumber();
   let orderId = null;
   try {
     const ins = await db.query(
       `INSERT INTO shop_orders (order_number, email, first_name, last_name, phone,
          shipping_address_1, shipping_suburb, shipping_state, shipping_postcode,
-         items, subtotal_cents, shipping_cents, amount_cents, square_payment_id, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'paid')
+         items, subtotal_cents, shipping_cents, discount_cents, promo_code, amount_cents, square_payment_id, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'paid')
        RETURNING id`,
       [orderNumber, contact.email, contact.first_name, contact.last_name || null, contact.phone || null,
         shipping.address_1, shipping.suburb, shipping.state || null, shipping.postcode,
-        JSON.stringify(lineItems), subtotal, shipping_cents, amount_cents, paymentId],
+        JSON.stringify(lineItems), subtotal, shipping_cents, discount_cents, appliedCode, amount_cents, paymentId],
     );
     orderId = ins.rows[0].id;
+    if (usePromo) {
+      await db.query('UPDATE promo_codes SET uses = uses + 1 WHERE upper(code) = $1', [appliedCode.toUpperCase()]);
+    }
   } catch (err) {
     console.error('Payment captured but order insert failed:', err.message, 'payment:', paymentId);
   }
@@ -94,6 +148,7 @@ router.post('/one-off', async (req, res) => {
     order_number: orderNumber,
     email: contact.email,
     first_name: contact.first_name,
+    discount_cents,
     amount_cents,
     status: 'paid',
   });

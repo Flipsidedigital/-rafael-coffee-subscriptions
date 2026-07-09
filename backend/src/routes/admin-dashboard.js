@@ -184,4 +184,49 @@ router.patch('/shop-orders/:id', adminAuth, async (req, res) => {
   }
 });
 
+// ── Promo codes (E5) ─────────────────────────────────────────────────────────
+router.get('/promo-codes', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM promo_codes ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Promo list error:', err);
+    res.status(500).json({ error: 'Failed to load promo codes' });
+  }
+});
+
+router.post('/promo-codes', adminAuth, async (req, res) => {
+  const { code, kind, value, min_subtotal_cents, max_uses, expires_at } = req.body;
+  if (!code || !value) return res.status(400).json({ error: 'Code and value are required' });
+  const k = kind === 'fixed' ? 'fixed' : 'percent';
+  if (k === 'percent' && (value < 1 || value > 100)) return res.status(400).json({ error: 'Percent must be 1–100' });
+  try {
+    const result = await db.query(
+      `INSERT INTO promo_codes (code, kind, value, min_subtotal_cents, max_uses, expires_at)
+       VALUES (upper($1), $2, $3, $4, $5, $6) RETURNING *`,
+      [code.trim(), k, parseInt(value, 10), parseInt(min_subtotal_cents, 10) || 0, max_uses ? parseInt(max_uses, 10) : null, expires_at || null]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'That code already exists' });
+    console.error('Promo create error:', err);
+    res.status(500).json({ error: 'Failed to create promo code' });
+  }
+});
+
+router.patch('/promo-codes/:id', adminAuth, async (req, res) => {
+  const { active } = req.body;
+  try {
+    const result = await db.query(
+      'UPDATE promo_codes SET active = COALESCE($1, active) WHERE id = $2 RETURNING *',
+      [typeof active === 'boolean' ? active : null, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Promo code not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Promo update error:', err);
+    res.status(500).json({ error: 'Failed to update promo code' });
+  }
+});
+
 module.exports = { router, adminAuth };

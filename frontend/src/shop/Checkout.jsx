@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCart, clearCart } from './cart';
-import { formatPrice, shippingFor, getProduct } from './products';
+import { formatPrice, shippingFor, getProduct, SUBSCRIBER_DISCOUNT } from './products';
 import { Eyebrow, BTN_PRIMARY, BTN_OUTLINE, FIELD, LABEL } from './ui';
 
 const API_URL = 'https://rafael-coffee-subscriptions-production.up.railway.app';
@@ -31,15 +31,41 @@ export default function Checkout({ navigate }) {
   const [order, setOrder] = useState(null);
   const [cardReady, setCardReady] = useState(false);
   const [cardError, setCardError] = useState(null);
+  const [promoCode, setPromoCode] = useState('');
+  const [promo, setPromo] = useState(null); // { valid, discount_cents, code, message }
   const cardRef = useRef(null);
   const attachedRef = useRef(false);
 
+  const portalToken = (() => {
+    try { return JSON.parse(localStorage.getItem('portal_auth'))?.token || null; } catch { return null; }
+  })();
+
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
   const shipping = shippingFor(subtotal);
-  const total = subtotal + shipping;
+  const subscriberDisc = portalToken ? Math.round(subtotal * SUBSCRIBER_DISCOUNT * 100) / 100 : 0;
+  const promoDisc = promo?.valid ? promo.discount_cents / 100 : 0;
+  const discount = Math.max(subscriberDisc, promoDisc);
+  const discountLabel = (promoDisc >= subscriberDisc && promoDisc > 0)
+    ? `Promo ${promo.code}`
+    : (subscriberDisc > 0 ? `Subscriber ${Math.round(SUBSCRIBER_DISCOUNT * 100)}%` : null);
+  const total = Math.max(0, subtotal - discount) + shipping;
   const canPay =
     details.email && details.firstName && details.lastName &&
     details.address1 && details.suburb && details.postcode;
+
+  async function applyPromo() {
+    if (!promoCode.trim()) return;
+    try {
+      const res = await fetch(`${API_URL}/api/orders/validate-promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode, subtotal_cents: Math.round(subtotal * 100) }),
+      });
+      setPromo(await res.json());
+    } catch {
+      setPromo({ valid: false, message: 'Could not validate code' });
+    }
+  }
 
   useEffect(() => {
     if (order || items.length === 0 || attachedRef.current) return;
@@ -71,7 +97,10 @@ export default function Checkout({ navigate }) {
       }
       const res = await fetch(`${API_URL}/api/orders/one-off`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(portalToken ? { Authorization: `Bearer ${portalToken}` } : {}),
+        },
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, qty: i.qty })),
           contact: {
@@ -86,6 +115,7 @@ export default function Checkout({ navigate }) {
             state: details.state,
             postcode: details.postcode,
           },
+          promo_code: promo?.valid ? promo.code : null,
           card_token: result.token,
         }),
       });
@@ -193,8 +223,31 @@ export default function Checkout({ navigate }) {
                 </li>
               ))}
             </ul>
-            <div className="mt-5 space-y-1.5 border-t border-maroon/10 pt-4 text-sm">
+            {/* promo code */}
+            <div className="mt-5 border-t border-maroon/10 pt-4">
+              <label className={LABEL}>Promo code</label>
+              <div className="flex gap-2">
+                <input
+                  className={FIELD}
+                  placeholder="Enter code"
+                  value={promoCode}
+                  onChange={(e) => { setPromoCode(e.target.value); setPromo(null); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyPromo(); } }}
+                />
+                <button type="button" onClick={applyPromo} className={BTN_OUTLINE + ' shrink-0 !px-5'}>Apply</button>
+              </div>
+              {promo && !promo.valid && <p className="mt-1.5 text-xs text-red-700">{promo.message}</p>}
+              {promo?.valid && <p className="mt-1.5 text-xs text-green-700">Code applied ✓</p>}
+              {subscriberDisc > 0 && promoDisc < subscriberDisc && (
+                <p className="mt-1.5 text-xs text-brass">★ Your subscriber discount is applied automatically.</p>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-1.5 text-sm">
               <div className="flex justify-between text-mid"><span>Subtotal</span><span className="text-ink">{formatPrice(subtotal)}</span></div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700"><span>{discountLabel}</span><span>− {formatPrice(discount)}</span></div>
+              )}
               <div className="flex justify-between text-mid"><span>Shipping</span><span className="text-ink">{shipping === 0 ? 'Free' : formatPrice(shipping)}</span></div>
               <div className="flex justify-between border-t border-maroon/10 pt-2 font-heading text-lg font-bold text-maroon"><span>Total</span><span>{formatPrice(total)}</span></div>
             </div>

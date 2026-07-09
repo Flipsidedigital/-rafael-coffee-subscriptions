@@ -80,6 +80,8 @@ function AdminDashboard({ auth, onLogout }) {
   const [shopOrders, setShopOrders] = useState([])
   const [shopTracking, setShopTracking] = useState({})
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [promoCodes, setPromoCodes] = useState([])
+  const [newPromo, setNewPromo] = useState({ code: '', kind: 'percent', value: '', min_subtotal_cents: '', max_uses: '' })
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -88,16 +90,18 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords, shop] = await Promise.all([
+      const [dash, subs, ords, shop, promos] = await Promise.all([
         fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/shop-orders`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/api/admin/promo-codes`, { headers }).then(r => r.json()),
       ])
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
       setOrders(Array.isArray(ords) ? ords : [])
       setShopOrders(Array.isArray(shop) ? shop : [])
+      setPromoCodes(Array.isArray(promos) ? promos : [])
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -145,6 +149,40 @@ function AdminDashboard({ auth, onLogout }) {
     }
   }
 
+  async function createPromo() {
+    if (!newPromo.code || !newPromo.value) return
+    try {
+      const res = await fetch(`${API_URL}/api/admin/promo-codes`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          code: newPromo.code,
+          kind: newPromo.kind,
+          value: parseInt(newPromo.value, 10),
+          min_subtotal_cents: newPromo.min_subtotal_cents ? Math.round(parseFloat(newPromo.min_subtotal_cents) * 100) : 0,
+          max_uses: newPromo.max_uses || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Failed to create code'); return }
+      setActionMsg('Promo code created')
+      setNewPromo({ code: '', kind: 'percent', value: '', min_subtotal_cents: '', max_uses: '' })
+      fetchAll()
+    } catch (err) {
+      setError('Failed to create code')
+    }
+  }
+
+  async function togglePromo(id, active) {
+    try {
+      await fetch(`${API_URL}/api/admin/promo-codes/${id}`, {
+        method: 'PATCH', headers, body: JSON.stringify({ active }),
+      })
+      fetchAll()
+    } catch (err) {
+      setError('Failed to update code')
+    }
+  }
+
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
 
   // Unify subscription-delivery orders and one-off shop orders into one list.
@@ -188,7 +226,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders']].map(([v, l]) => (
+          {[['dashboard','Overview'], ['subscriptions','Subscriptions'], ['orders','Orders'], ['promos','Promo Codes']].map(([v, l]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
           ))}
         </div>
@@ -332,6 +370,59 @@ function AdminDashboard({ auth, onLogout }) {
                   ))}
                   {allOrders.length === 0 && (
                     <tr><td colSpan={7} className="admin-empty-row">No orders yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Promo Codes (E5) */}
+        {view === 'promos' && (
+          <div className="admin-section">
+            <h2 className="admin-section-title">PROMO CODES</h2>
+
+            {/* create form */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-end', marginBottom: 20, padding: 16, border: '1px solid rgba(64,32,32,0.12)', borderRadius: 10, background: '#fff' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Code
+                <input className="tracking-input" style={{ textTransform: 'uppercase' }} value={newPromo.code} onChange={e => setNewPromo(p => ({ ...p, code: e.target.value }))} placeholder="WELCOME10" />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Type
+                <select className="tracking-input" value={newPromo.kind} onChange={e => setNewPromo(p => ({ ...p, kind: e.target.value }))}>
+                  <option value="percent">Percent %</option>
+                  <option value="fixed">Fixed $</option>
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>{newPromo.kind === 'percent' ? 'Value (%)' : 'Value ($)'}
+                <input className="tracking-input" type="number" value={newPromo.value} onChange={e => setNewPromo(p => ({ ...p, value: e.target.value }))} placeholder={newPromo.kind === 'percent' ? '10' : '5'} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Min spend ($)
+                <input className="tracking-input" type="number" value={newPromo.min_subtotal_cents} onChange={e => setNewPromo(p => ({ ...p, min_subtotal_cents: e.target.value }))} placeholder="0" />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', fontSize: 12, color: 'var(--mid)', gap: 4 }}>Max uses
+                <input className="tracking-input" type="number" value={newPromo.max_uses} onChange={e => setNewPromo(p => ({ ...p, max_uses: e.target.value }))} placeholder="∞" />
+              </label>
+              <button className="admin-action-btn" onClick={createPromo} disabled={!newPromo.code || !newPromo.value}>Create code</button>
+            </div>
+
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr><th>Code</th><th>Discount</th><th>Min spend</th><th>Uses</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {promoCodes.map(p => (
+                    <tr key={p.id}>
+                      <td className="td-name">{p.code}</td>
+                      <td>{p.kind === 'percent' ? `${p.value}%` : `$${(p.value / 100).toFixed(2)}`}</td>
+                      <td>{p.min_subtotal_cents ? `$${(p.min_subtotal_cents / 100).toFixed(2)}` : '—'}</td>
+                      <td>{p.uses}{p.max_uses ? ` / ${p.max_uses}` : ''}</td>
+                      <td><span className={`status-badge status-${p.active ? 'active' : 'cancelled'}`}>{p.active ? 'active' : 'inactive'}</span></td>
+                      <td><button className="admin-action-btn" onClick={() => togglePromo(p.id, !p.active)}>{p.active ? 'Deactivate' : 'Activate'}</button></td>
+                    </tr>
+                  ))}
+                  {promoCodes.length === 0 && (
+                    <tr><td colSpan={6} className="admin-empty-row">No promo codes yet</td></tr>
                   )}
                 </tbody>
               </table>
