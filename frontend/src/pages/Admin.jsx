@@ -133,6 +133,7 @@ function AdminDashboard({ auth, onLogout }) {
   const [catalog, setCatalog] = useState([])
   const [editing, setEditing] = useState(null) // product being added/edited (null = closed)
   const [settings, setSettings] = useState({})
+  const [uploading, setUploading] = useState(false)
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -324,6 +325,22 @@ function AdminDashboard({ auth, onLogout }) {
       await fetch(`${API_URL}/api/admin/site-settings`, { method: 'PATCH', headers, body: JSON.stringify({ announcement: settings.announcement || '' }) })
       setActionMsg('Marketing settings saved')
     } catch (err) { setError('Failed to save settings') }
+  }
+
+  async function uploadImage(file) {
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    try {
+      const res = await fetch(`${API_URL}/api/admin/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': file.type || 'application/octet-stream' },
+        body: file,
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Upload failed'); return }
+      setEditing(x => ({ ...x, image: data.url, fit: x?.fit || 'cover' }))
+    } catch (err) { setError('Upload failed') } finally { setUploading(false) }
   }
 
   async function toggleFeatured(p) {
@@ -903,6 +920,11 @@ function AdminDashboard({ auth, onLogout }) {
               <Field label="Weight (e.g. 250g)" value={editing.weight} onChange={v => setEditing(e => ({ ...e, weight: v }))} />
               <SelectField label="Image fit" value={editing.fit} options={['contain', 'cover']} onChange={v => setEditing(e => ({ ...e, fit: v }))} />
               <Field label="Image URL / path" span2 value={editing.image} onChange={v => setEditing(e => ({ ...e, image: v }))} placeholder="/products/onesto.png or https://…" />
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: 'var(--mid)', gridColumn: '1 / -1' }}>
+                Or upload an image{uploading && <span style={{ color: 'var(--red)' }}> · uploading…</span>}
+                <input type="file" accept="image/*" onChange={e => uploadImage(e.target.files?.[0])} />
+                {editing.image && <img src={editing.image} alt="" style={{ marginTop: 4, height: 64, width: 64, objectFit: 'contain', border: '1px solid #e4e7ec', borderRadius: 8, background: '#fff' }} />}
+              </label>
               <Field label="Origin" value={editing.origin} onChange={v => setEditing(e => ({ ...e, origin: v }))} />
               <Field label="Roast" value={editing.roast} onChange={v => setEditing(e => ({ ...e, roast: v }))} />
               <Field label="Blurb" span2 textarea value={editing.blurb} onChange={v => setEditing(e => ({ ...e, blurb: v }))} />

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { put } = require('@vercel/blob');
 const db = require('../db');
 const router = express.Router();
 
@@ -403,6 +404,28 @@ router.patch('/site-settings', adminAuth, async (req, res) => {
   } catch (err) {
     console.error('admin settings update error:', err);
     res.status(500).json({ error: 'Failed to save settings' });
+  }
+});
+
+// ── Image upload (Vercel Blob) ───────────────────────────────────────────────
+// Frontend POSTs the raw file bytes with ?filename= and the image Content-Type.
+router.post('/upload', adminAuth, express.raw({ type: ['image/*', 'application/octet-stream'], limit: '8mb' }), async (req, res) => {
+  try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return res.status(500).json({ error: 'Image storage not configured — set BLOB_READ_WRITE_TOKEN.' });
+    }
+    if (!req.body || !req.body.length) return res.status(400).json({ error: 'No file received' });
+    const safe = String(req.query.filename || 'image').replace(/[^a-z0-9._-]/gi, '-').slice(0, 80);
+    const blob = await put(`products/${Date.now()}-${safe}`, req.body, {
+      access: 'public',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      contentType: req.headers['content-type'] || 'image/jpeg',
+      addRandomSuffix: false,
+    });
+    res.json({ url: blob.url });
+  } catch (err) {
+    console.error('Upload error:', err.message);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
