@@ -141,27 +141,29 @@ function AdminDashboard({ auth, onLogout }) {
 
   async function fetchAll() {
     setLoading(true)
-    try {
-      const paths = ['dashboard', 'subscriptions', 'orders', 'shop-orders', 'promo-codes', 'class-sessions', 'shop-products', 'site-settings']
-      const responses = await Promise.all(paths.map(p => fetch(`${API_URL}/api/admin/${p}`, { headers })))
-      if (responses.some(r => r.status === 401 || r.status === 403)) {
-        onLogout() // token expired / invalid — back to login
-        return
-      }
-      const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all(responses.map(r => r.json()))
-      setDashData(dash)
-      setSubscriptions(Array.isArray(subs) ? subs : [])
-      setOrders(Array.isArray(ords) ? ords : [])
-      setShopOrders(Array.isArray(shop) ? shop : [])
-      setPromoCodes(Array.isArray(promos) ? promos : [])
-      setClassSessions(Array.isArray(classes) ? classes : [])
-      setCatalog(Array.isArray(cat) ? cat : [])
-      setSettings(sett && typeof sett === 'object' ? sett : {})
-    } catch (err) {
-      setError('Failed to load data')
-    } finally {
-      setLoading(false)
+    const paths = ['dashboard', 'subscriptions', 'orders', 'shop-orders', 'promo-codes', 'class-sessions', 'shop-products', 'site-settings']
+    const responses = await Promise.all(paths.map(p => fetch(`${API_URL}/api/admin/${p}`, { headers }).catch(() => null)))
+    if (responses.some(r => r && (r.status === 401 || r.status === 403))) {
+      onLogout() // token expired / invalid — back to login
+      return
     }
+    // Parse each feed independently so one flaky endpoint can't break the admin.
+    const get = async (r, fb) => { try { return r && r.ok ? await r.json() : fb } catch { return fb } }
+    const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all([
+      get(responses[0], null), get(responses[1], []), get(responses[2], []), get(responses[3], []),
+      get(responses[4], []), get(responses[5], []), get(responses[6], []), get(responses[7], {}),
+    ])
+    if (dash) setDashData(dash)
+    setSubscriptions(Array.isArray(subs) ? subs : [])
+    setOrders(Array.isArray(ords) ? ords : [])
+    setShopOrders(Array.isArray(shop) ? shop : [])
+    setPromoCodes(Array.isArray(promos) ? promos : [])
+    setClassSessions(Array.isArray(classes) ? classes : [])
+    setCatalog(Array.isArray(cat) ? cat : [])
+    setSettings(sett && typeof sett === 'object' ? sett : {})
+    if (responses.every(r => !r || !r.ok)) setError('Failed to load data')
+    else setError(null)
+    setLoading(false)
   }
 
   async function updateTracking(orderId) {
