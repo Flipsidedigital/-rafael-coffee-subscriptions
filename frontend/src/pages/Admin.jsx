@@ -142,16 +142,13 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all([
-        fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/shop-orders`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/promo-codes`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/class-sessions`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/shop-products`, { headers }).then(r => r.json()),
-        fetch(`${API_URL}/api/admin/site-settings`, { headers }).then(r => r.json()),
-      ])
+      const paths = ['dashboard', 'subscriptions', 'orders', 'shop-orders', 'promo-codes', 'class-sessions', 'shop-products', 'site-settings']
+      const responses = await Promise.all(paths.map(p => fetch(`${API_URL}/api/admin/${p}`, { headers })))
+      if (responses.some(r => r.status === 401 || r.status === 403)) {
+        onLogout() // token expired / invalid — back to login
+        return
+      }
+      const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all(responses.map(r => r.json()))
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
       setOrders(Array.isArray(ords) ? ords : [])
@@ -406,7 +403,7 @@ function AdminDashboard({ auth, onLogout }) {
         {loading && <div className="admin-loading">Loading...</div>}
 
         {/* Overview / Dashboard */}
-        {view === 'dashboard' && dashData && (
+        {view === 'dashboard' && dashData && dashData.stats && (
           <div className="admin-section">
             <h2 className="admin-section-title">DASHBOARD</h2>
 
