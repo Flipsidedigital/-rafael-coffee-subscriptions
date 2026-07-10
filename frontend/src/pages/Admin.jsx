@@ -68,7 +68,7 @@ function StatCard({ label, value, sub, colour }) {
 
 function MetricCard({ icon, iconBg, label, value, sub }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+    <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 14, padding: 20 }}>
       <div style={{ width: 44, height: 44, borderRadius: 12, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{icon}</div>
       <div style={{ marginTop: 16, fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 12, color: 'var(--mid)' }}>{label}</div>
       <div style={{ marginTop: 4, fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 800, color: 'var(--dark)', lineHeight: 1.1 }}>{value}</div>
@@ -359,8 +359,8 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview'], ['orders','Orders'], ['products','Products'], ['subscriptions','Subscriptions'], ['classes','Classes'], ['promos','Promo Codes']].map(([v, l]) => (
-            <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}>{l}</button>
+          {[['dashboard','Overview','📊'], ['orders','Orders','🧾'], ['products','Products','☕'], ['subscriptions','Subscriptions','🔁'], ['classes','Classes','🎓'], ['promos','Promo Codes','🏷️']].map(([v, l, icon]) => (
+            <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}><span className="admin-tab-icon">{icon}</span>{l}</button>
           ))}
         </div>
         <button className="btn-ghost admin-logout" onClick={onLogout}>Sign out</button>
@@ -386,14 +386,14 @@ function AdminDashboard({ auth, onLogout }) {
 
             {/* chart + breakdown */}
             <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', marginTop: 16 }}>
-              <div style={{ gridColumn: 'span 2', minWidth: 280, background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+              <div style={{ gridColumn: 'span 2', minWidth: 280, background: '#fff', border: '1px solid #e4e7ec', borderRadius: 14, padding: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)' }}>Revenue · last 14 days</h3>
                   <span style={{ fontSize: 12, color: 'var(--mid)' }}>AUD</span>
                 </div>
                 <MiniBarChart data={dashData.revenue_series || []} />
               </div>
-              <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20 }}>
+              <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 14, padding: 20 }}>
                 <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)', marginBottom: 14 }}>Subscriptions</h3>
                 <BreakdownRow colour="#2f855a" label="Active" value={dashData.stats.active_subscriptions} />
                 <BreakdownRow colour="#c05621" label="Paused" value={dashData.stats.paused_subscriptions} />
@@ -405,7 +405,7 @@ function AdminDashboard({ auth, onLogout }) {
             </div>
 
             {/* recent orders */}
-            <div style={{ background: '#fff', border: '1px solid #e6e2dd', borderRadius: 14, padding: 20, marginTop: 16 }}>
+            <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 14, padding: 20, marginTop: 16 }}>
               <h3 style={{ fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 13, color: 'var(--dark)', marginBottom: 12 }}>Recent orders</h3>
               <div className="admin-table-wrap">
                 <table className="admin-table">
