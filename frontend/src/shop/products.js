@@ -218,6 +218,19 @@ export async function fetchCatalog() {
   }
 }
 
+// Public product categories → [{ key, label }]; null on failure (use CATEGORIES).
+export async function fetchCategories() {
+  try {
+    const res = await fetch(`${API_URL}/api/categories`);
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return rows.map((r) => ({ key: r.id, label: r.label }));
+  } catch {
+    return null;
+  }
+}
+
 // Public site settings (announcement banner, etc.); {} on failure.
 export async function fetchSettings() {
   try {

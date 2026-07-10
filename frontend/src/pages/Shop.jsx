@@ -4,6 +4,7 @@ import {
   PRODUCTS,
   CATEGORIES,
   fetchCatalog,
+  fetchCategories,
   fetchSettings,
   formatPrice,
   subscriberPrice,
@@ -24,13 +25,15 @@ export default function Shop() {
   const [count, setCount] = useState(cartCount());
   const [cartOpen, setCartOpen] = useState(false);
   const [catalog, setCatalog] = useState(PRODUCTS);
+  const [categories, setCategories] = useState(CATEGORIES);
   const [announcement, setAnnouncement] = useState(null);
   const subscriber = isSubscriber();
 
-  // Load the live catalogue + settings; keeps the hardcoded PRODUCTS as fallback.
+  // Load the live catalogue + categories + settings; fall back to hardcoded.
   useEffect(() => {
     let alive = true;
     fetchCatalog().then((rows) => { if (alive && rows) setCatalog(rows); });
+    fetchCategories().then((cats) => { if (alive && cats) setCategories([{ key: 'all', label: 'All' }, ...cats]); });
     fetchSettings().then((s) => { if (alive && s?.announcement) setAnnouncement(s.announcement); });
     return () => { alive = false; };
   }, []);
@@ -74,7 +77,7 @@ export default function Shop() {
       ) : detailMatch ? (
         <ProductDetail product={product} subscriber={subscriber} navigate={navigate} />
       ) : (
-        <ShopListing subscriber={subscriber} navigate={navigate} products={catalog} />
+        <ShopListing subscriber={subscriber} navigate={navigate} products={catalog} categories={categories} />
       )}
       <ShopFooter navigate={navigate} />
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} navigate={navigate} />
@@ -188,7 +191,7 @@ function ShopHeader({ count, subscriber, navigate, onOpenCart }) {
 }
 
 /* ================================================================== Listing */
-function ShopListing({ subscriber, navigate, products }) {
+function ShopListing({ subscriber, navigate, products, categories }) {
   const [active, setActive] = useState('all');
   const visible = active === 'all' ? products : products.filter((p) => p.category === active);
   const placeholder = visible.length === 0;
@@ -207,7 +210,7 @@ function ShopListing({ subscriber, navigate, products }) {
         />
 
         <div className="mt-8 mb-10 flex flex-wrap justify-center gap-2">
-          {CATEGORIES.map((c) => {
+          {categories.map((c) => {
             const isActive = active === c.key;
             return (
               <button
@@ -228,7 +231,7 @@ function ShopListing({ subscriber, navigate, products }) {
         </div>
 
         {placeholder ? (
-          <ComingSoon category={active} />
+          <ComingSoon label={categories.find((c) => c.key === active)?.label || active} />
         ) : (
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4 lg:gap-x-7">
             {visible.map((p) => (
@@ -591,19 +594,14 @@ function Meta({ label, value }) {
   );
 }
 
-function ComingSoon({ category }) {
-  const label = category === 'accessories' ? 'Accessories' : 'Training Classes';
-  const copy =
-    category === 'accessories'
-      ? 'Mugs, brew gear and Rafael’s merch — thoughtfully chosen, coming soon.'
-      : 'Hands-on brewing and barista classes at the roastery — coming soon.';
+function ComingSoon({ label }) {
   return (
     <div className="rounded-2xl border border-dashed border-maroon/25 bg-white px-6 py-20 text-center">
       <p className="font-heading text-xs font-semibold uppercase tracking-[0.25em] text-brass">Just roasting the details</p>
       <p className="mt-3 font-heading text-2xl font-extrabold uppercase tracking-tight text-ink sm:text-3xl">
         {label} — Coming Soon
       </p>
-      <p className="mx-auto mt-3 max-w-md text-mid">{copy}</p>
+      <p className="mx-auto mt-3 max-w-md text-mid">Fresh additions to this range are on the way — check back soon.</p>
     </div>
   );
 }

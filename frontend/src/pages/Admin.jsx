@@ -134,6 +134,8 @@ function AdminDashboard({ auth, onLogout }) {
   const [editing, setEditing] = useState(null) // product being added/edited (null = closed)
   const [settings, setSettings] = useState({})
   const [uploading, setUploading] = useState(false)
+  const [productCats, setProductCats] = useState([])
+  const [newCat, setNewCat] = useState('')
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -141,7 +143,7 @@ function AdminDashboard({ auth, onLogout }) {
 
   async function fetchAll() {
     setLoading(true)
-    const paths = ['dashboard', 'subscriptions', 'orders', 'shop-orders', 'promo-codes', 'class-sessions', 'shop-products', 'site-settings']
+    const paths = ['dashboard', 'subscriptions', 'orders', 'shop-orders', 'promo-codes', 'class-sessions', 'shop-products', 'site-settings', 'categories']
     const responses = await Promise.all(paths.map(p => fetch(`${API_URL}/api/admin/${p}`, { headers }).catch(() => null)))
     if (responses.some(r => r && (r.status === 401 || r.status === 403))) {
       onLogout() // token expired / invalid — back to login
@@ -149,9 +151,9 @@ function AdminDashboard({ auth, onLogout }) {
     }
     // Parse each feed independently so one flaky endpoint can't break the admin.
     const get = async (r, fb) => { try { return r && r.ok ? await r.json() : fb } catch { return fb } }
-    const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all([
+    const [dash, subs, ords, shop, promos, classes, cat, sett, cats] = await Promise.all([
       get(responses[0], null), get(responses[1], []), get(responses[2], []), get(responses[3], []),
-      get(responses[4], []), get(responses[5], []), get(responses[6], []), get(responses[7], {}),
+      get(responses[4], []), get(responses[5], []), get(responses[6], []), get(responses[7], {}), get(responses[8], []),
     ])
     if (dash) setDashData(dash)
     setSubscriptions(Array.isArray(subs) ? subs : [])
@@ -161,6 +163,7 @@ function AdminDashboard({ auth, onLogout }) {
     setClassSessions(Array.isArray(classes) ? classes : [])
     setCatalog(Array.isArray(cat) ? cat : [])
     setSettings(sett && typeof sett === 'object' ? sett : {})
+    setProductCats(Array.isArray(cats) ? cats : [])
     if (responses.every(r => !r || !r.ok)) setError('Failed to load data')
     else setError(null)
     setLoading(false)
@@ -340,6 +343,26 @@ function AdminDashboard({ auth, onLogout }) {
       if (!res.ok) { setError(data.error || 'Upload failed'); return }
       setEditing(x => ({ ...x, image: data.url, fit: x?.fit || 'cover' }))
     } catch (err) { setError('Upload failed') } finally { setUploading(false) }
+  }
+
+  async function createCategory() {
+    if (!newCat.trim()) return
+    try {
+      const res = await fetch(`${API_URL}/api/admin/categories`, { method: 'POST', headers, body: JSON.stringify({ label: newCat.trim(), sort: productCats.length }) })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Failed to add category'); return }
+      setActionMsg('Category added')
+      setNewCat('')
+      fetchAll()
+    } catch (err) { setError('Failed to add category') }
+  }
+
+  async function deleteCategory(id) {
+    if (!window.confirm(`Delete the "${id}" category? Products keep their category label but it won't show as a filter.`)) return
+    try {
+      await fetch(`${API_URL}/api/admin/categories/${id}`, { method: 'DELETE', headers })
+      fetchAll()
+    } catch (err) { setError('Failed to delete category') }
   }
 
   async function toggleFeatured(p) {
@@ -621,6 +644,21 @@ function AdminDashboard({ auth, onLogout }) {
               <h2 className="admin-section-title">PRODUCTS</h2>
               <button className="admin-action-btn" onClick={openNew}>+ Add product</button>
             </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 12, padding: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)', marginBottom: 10 }}>Categories</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                {productCats.map(c => (
+                  <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', background: '#f2f4f7', borderRadius: 999, fontSize: 13, color: 'var(--dark)' }}>
+                    {c.label}
+                    <button onClick={() => deleteCategory(c.id)} title="Delete category" style={{ background: 'none', border: 'none', color: 'var(--mid)', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
+                  </span>
+                ))}
+                <input className="tracking-input" placeholder="New category" value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); createCategory() } }} />
+                <button className="admin-action-btn" onClick={createCategory} disabled={!newCat.trim()}>Add</button>
+              </div>
+            </div>
+
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
@@ -913,7 +951,7 @@ function AdminDashboard({ auth, onLogout }) {
             </div>
             <div style={{ padding: 24, display: 'grid', gap: 14, gridTemplateColumns: '1fr 1fr' }}>
               <Field label="Name" span2 value={editing.name} onChange={v => setEditing(e => ({ ...e, name: v }))} />
-              <SelectField label="Category" value={editing.category} options={['coffee', 'accessories', 'classes']} onChange={v => setEditing(e => ({ ...e, category: v }))} />
+              <SelectField label="Category" value={editing.category} options={productCats.length ? productCats.map(c => ({ value: c.id, label: c.label })) : ['coffee', 'accessories', 'classes']} onChange={v => setEditing(e => ({ ...e, category: v }))} />
               <Field label="Price ($)" type="number" value={editing.price} onChange={v => setEditing(e => ({ ...e, price: v }))} />
               <Field label="Subtitle (blend / tagline)" span2 value={editing.sub} onChange={v => setEditing(e => ({ ...e, sub: v }))} />
               <Field label="Weight (e.g. 250g)" value={editing.weight} onChange={v => setEditing(e => ({ ...e, weight: v }))} />
@@ -961,7 +999,11 @@ function SelectField({ label, value, options, onChange }) {
     <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--mid)' }}>
       {label}
       <select className="tracking-input" value={value} onChange={e => onChange(e.target.value)}>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
+        {options.map(o => {
+          const val = typeof o === 'string' ? o : o.value
+          const lbl = typeof o === 'string' ? o : o.label
+          return <option key={val} value={val}>{lbl}</option>
+        })}
       </select>
     </label>
   )

@@ -377,6 +377,62 @@ router.delete('/shop-products/:id', adminAuth, async (req, res) => {
   }
 });
 
+// ── Product categories ───────────────────────────────────────────────────────
+router.get('/categories', adminAuth, async (req, res) => {
+  try {
+    const r = await db.query('SELECT * FROM product_categories ORDER BY sort ASC, label ASC');
+    res.json(r.rows);
+  } catch (err) {
+    console.error('Categories list error:', err);
+    res.status(500).json({ error: 'Failed to load categories' });
+  }
+});
+
+router.post('/categories', adminAuth, async (req, res) => {
+  const { label, sort } = req.body || {};
+  if (!label) return res.status(400).json({ error: 'Label is required' });
+  const id = (req.body.id && slugify(req.body.id)) || slugify(label);
+  if (!id) return res.status(400).json({ error: 'Could not derive a category id' });
+  try {
+    const r = await db.query(
+      'INSERT INTO product_categories (id, label, sort) VALUES ($1,$2,$3) RETURNING *',
+      [id, label, parseInt(sort, 10) || 0]
+    );
+    res.json(r.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'That category already exists' });
+    console.error('Category create error:', err);
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+router.patch('/categories/:id', adminAuth, async (req, res) => {
+  const { label, sort, active } = req.body || {};
+  try {
+    const r = await db.query(
+      `UPDATE product_categories
+         SET label = COALESCE($1, label), sort = COALESCE($2, sort), active = COALESCE($3, active)
+       WHERE id = $4 RETURNING *`,
+      [label ?? null, sort != null ? parseInt(sort, 10) : null, typeof active === 'boolean' ? active : null, req.params.id]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
+    res.json(r.rows[0]);
+  } catch (err) {
+    console.error('Category update error:', err);
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+router.delete('/categories/:id', adminAuth, async (req, res) => {
+  try {
+    await db.query('DELETE FROM product_categories WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Category delete error:', err);
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
 // ── Site settings (Marketing) ────────────────────────────────────────────────
 router.get('/site-settings', adminAuth, async (req, res) => {
   try {
