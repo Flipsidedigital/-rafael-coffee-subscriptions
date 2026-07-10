@@ -211,9 +211,21 @@ export async function fetchCatalog() {
       notes: Array.isArray(r.notes) ? r.notes : undefined,
       rating: r.rating != null ? Number(r.rating) : undefined,
       reviews: r.reviews != null ? Number(r.reviews) : undefined,
+      featured: !!r.featured,
     }));
   } catch {
     return null;
+  }
+}
+
+// Public site settings (announcement banner, etc.); {} on failure.
+export async function fetchSettings() {
+  try {
+    const res = await fetch(`${API_URL}/api/site-settings`);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    return {};
   }
 }
 

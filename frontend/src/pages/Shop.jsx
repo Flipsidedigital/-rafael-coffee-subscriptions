@@ -4,6 +4,7 @@ import {
   PRODUCTS,
   CATEGORIES,
   fetchCatalog,
+  fetchSettings,
   formatPrice,
   subscriberPrice,
   SUBSCRIBER_DISCOUNT,
@@ -23,12 +24,14 @@ export default function Shop() {
   const [count, setCount] = useState(cartCount());
   const [cartOpen, setCartOpen] = useState(false);
   const [catalog, setCatalog] = useState(PRODUCTS);
+  const [announcement, setAnnouncement] = useState(null);
   const subscriber = isSubscriber();
 
-  // Load the live catalogue; keeps the hardcoded PRODUCTS as fallback.
+  // Load the live catalogue + settings; keeps the hardcoded PRODUCTS as fallback.
   useEffect(() => {
     let alive = true;
     fetchCatalog().then((rows) => { if (alive && rows) setCatalog(rows); });
+    fetchSettings().then((s) => { if (alive && s?.announcement) setAnnouncement(s.announcement); });
     return () => { alive = false; };
   }, []);
 
@@ -60,7 +63,7 @@ export default function Shop() {
 
   return (
     <div className="shop-root min-h-screen bg-cream font-body text-ink antialiased">
-      <AnnounceBar />
+      <AnnounceBar text={announcement} />
       <ShopHeader count={count} subscriber={subscriber} navigate={navigate} onOpenCart={() => setCartOpen(true)} />
       {isAbout ? (
         <About navigate={navigate} />
@@ -80,11 +83,11 @@ export default function Shop() {
 }
 
 /* =================================================================== Chrome */
-function AnnounceBar() {
+function AnnounceBar({ text }) {
   return (
     <div className="bg-espresso text-cream">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center font-heading text-[11px] font-medium uppercase tracking-[0.28em]">
-        Freshly roasted in the Macedon Ranges · Complimentary shipping over $60
+        {text || 'Freshly roasted in the Macedon Ranges · Complimentary shipping over $60'}
       </p>
     </div>
   );
@@ -242,7 +245,8 @@ function ShopListing({ subscriber, navigate, products }) {
 }
 
 function Hero({ navigate, products }) {
-  const featured = products.filter((p) => p.category === 'coffee').slice(0, 3);
+  const flagged = products.filter((p) => p.featured);
+  const featured = (flagged.length >= 3 ? flagged : products.filter((p) => p.category === 'coffee')).slice(0, 3);
   return (
     <section className="relative overflow-hidden bg-cream">
       {/* soft glow */}

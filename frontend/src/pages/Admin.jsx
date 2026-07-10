@@ -132,6 +132,7 @@ function AdminDashboard({ auth, onLogout }) {
   const [attendees, setAttendees] = useState({}) // sessionId -> bookings[]
   const [catalog, setCatalog] = useState([])
   const [editing, setEditing] = useState(null) // product being added/edited (null = closed)
+  const [settings, setSettings] = useState({})
 
   const headers = { 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'application/json' }
 
@@ -140,7 +141,7 @@ function AdminDashboard({ auth, onLogout }) {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [dash, subs, ords, shop, promos, classes, cat] = await Promise.all([
+      const [dash, subs, ords, shop, promos, classes, cat, sett] = await Promise.all([
         fetch(`${API_URL}/api/admin/dashboard`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/subscriptions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/orders`, { headers }).then(r => r.json()),
@@ -148,6 +149,7 @@ function AdminDashboard({ auth, onLogout }) {
         fetch(`${API_URL}/api/admin/promo-codes`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/class-sessions`, { headers }).then(r => r.json()),
         fetch(`${API_URL}/api/admin/shop-products`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/api/admin/site-settings`, { headers }).then(r => r.json()),
       ])
       setDashData(dash)
       setSubscriptions(Array.isArray(subs) ? subs : [])
@@ -156,6 +158,7 @@ function AdminDashboard({ auth, onLogout }) {
       setPromoCodes(Array.isArray(promos) ? promos : [])
       setClassSessions(Array.isArray(classes) ? classes : [])
       setCatalog(Array.isArray(cat) ? cat : [])
+      setSettings(sett && typeof sett === 'object' ? sett : {})
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -316,6 +319,20 @@ function AdminDashboard({ auth, onLogout }) {
     setEditing({ _new: true, category: 'coffee', fit: 'contain', active: true, price: '', name: '' })
   }
 
+  async function saveSettings() {
+    try {
+      await fetch(`${API_URL}/api/admin/site-settings`, { method: 'PATCH', headers, body: JSON.stringify({ announcement: settings.announcement || '' }) })
+      setActionMsg('Marketing settings saved')
+    } catch (err) { setError('Failed to save settings') }
+  }
+
+  async function toggleFeatured(p) {
+    try {
+      await fetch(`${API_URL}/api/admin/shop-products/${p.id}`, { method: 'PATCH', headers, body: JSON.stringify({ featured: !p.featured }) })
+      fetchAll()
+    } catch (err) { setError('Failed to update product') }
+  }
+
   const filteredSubs = subFilter === 'all' ? subscriptions : subscriptions.filter(s => s.status === subFilter)
 
   // Unify subscription-delivery orders and one-off shop orders into one list.
@@ -359,7 +376,7 @@ function AdminDashboard({ auth, onLogout }) {
       <div className="admin-nav">
         <img src="/Rafaels_Coffee_logo-with-ESB.png" alt="Rafael's Coffee" className="admin-nav-logo" />
         <div className="admin-nav-tabs">
-          {[['dashboard','Overview','📊'], ['orders','Orders','🧾'], ['products','Products','☕'], ['subscriptions','Subscriptions','🔁'], ['classes','Classes','🎓'], ['promos','Promo Codes','🏷️']].map(([v, l, icon]) => (
+          {[['dashboard','Overview','📊'], ['orders','Orders','🧾'], ['logistics','Logistics','🚚'], ['products','Products','☕'], ['subscriptions','Subscriptions','🔁'], ['classes','Classes','🎓'], ['marketing','Marketing','📣'], ['promos','Promo Codes','🏷️']].map(([v, l, icon]) => (
             <button key={v} className={`admin-tab ${view === v ? 'active' : ''}`} onClick={() => setView(v)}><span className="admin-tab-icon">{icon}</span>{l}</button>
           ))}
         </div>
@@ -521,6 +538,66 @@ function AdminDashboard({ auth, onLogout }) {
           </div>
         )}
 
+        {/* Logistics — fulfilment queue */}
+        {view === 'logistics' && (() => {
+          const toFulfil = allOrders.filter(o => !o.tracking_number && !['shipped', 'delivered', 'cancelled'].includes(o.status))
+          const shipped = allOrders.filter(o => o.tracking_number || ['shipped', 'delivered'].includes(o.status))
+          return (
+            <div className="admin-section">
+              <h2 className="admin-section-title">LOGISTICS</h2>
+              <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                <MetricCard icon="📦" iconBg="rgba(181,71,8,0.12)" label="To fulfil" value={toFulfil.length} sub="awaiting dispatch" />
+                <MetricCard icon="✅" iconBg="rgba(2,122,72,0.12)" label="Shipped" value={shipped.length} sub="with tracking" />
+              </div>
+
+              <h3 className="admin-sub-title">To fulfil</h3>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead><tr><th>Order</th><th>Type</th><th>Customer</th><th>Items</th><th>Address</th><th>Ship</th></tr></thead>
+                  <tbody>
+                    {toFulfil.map(o => (
+                      <tr key={`${o._type}-${o.id}`}>
+                        <td className="td-name" style={{ cursor: 'pointer' }} onClick={() => setSelectedOrder(o)}>{o.order_number}</td>
+                        <td><span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '3px 9px', borderRadius: 999, fontWeight: 600, background: o._type === 'subscription' ? 'rgba(70,95,255,0.12)' : 'rgba(29,41,57,0.08)', color: o._type === 'subscription' ? '#465fff' : '#1d2939' }}>{o._type === 'subscription' ? 'Subscription' : 'Shop'}</span></td>
+                        <td><div className="td-name">{o.first_name} {o.last_name}</div><div className="td-email">{o.email}</div></td>
+                        <td style={{ maxWidth: 200 }}>{(o.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</td>
+                        <td><div className="td-address">{o.shipping_address_1}<br />{o.shipping_suburb} {o.shipping_state} {o.shipping_postcode}</div></td>
+                        <td>
+                          <div className="tracking-input-group">
+                            <input type="text" placeholder="Tracking #" className="tracking-input" value={shopTracking[o.id]?.number || ''} onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], number: e.target.value } }))} />
+                            <input type="text" placeholder="Carrier" className="tracking-input carrier" value={shopTracking[o.id]?.carrier || ''} onChange={e => setShopTracking(t => ({ ...t, [o.id]: { ...t[o.id], carrier: e.target.value } }))} />
+                            <button className="admin-action-btn" disabled={!shopTracking[o.id]?.number} onClick={() => shipOrder(o, shopTracking[o.id]?.number, shopTracking[o.id]?.carrier)}>Ship</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {toFulfil.length === 0 && <tr><td colSpan={6} className="admin-empty-row">Nothing to fulfil — all caught up 🎉</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="admin-sub-title">Recently shipped</h3>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead><tr><th>Order</th><th>Customer</th><th>Tracking</th><th>Carrier</th><th>Date</th></tr></thead>
+                  <tbody>
+                    {shipped.slice(0, 15).map(o => (
+                      <tr key={`${o._type}-${o.id}`} onClick={() => setSelectedOrder(o)} style={{ cursor: 'pointer' }}>
+                        <td className="td-name">{o.order_number}</td>
+                        <td><div className="td-name">{o.first_name} {o.last_name}</div></td>
+                        <td>{o.tracking_number || '—'}</td>
+                        <td>{o.tracking_carrier || '—'}</td>
+                        <td>{o.shipped_at ? new Date(o.shipped_at).toLocaleDateString('en-AU') : new Date(o.created_at).toLocaleDateString('en-AU')}</td>
+                      </tr>
+                    ))}
+                    {shipped.length === 0 && <tr><td colSpan={5} className="admin-empty-row">No shipped orders yet</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Products (catalogue) */}
         {view === 'products' && (
           <div className="admin-section">
@@ -628,6 +705,41 @@ function AdminDashboard({ auth, onLogout }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Marketing */}
+        {view === 'marketing' && (
+          <div className="admin-section">
+            <h2 className="admin-section-title">MARKETING</h2>
+
+            <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 12, padding: 20 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--dark)' }}>Announcement banner</h3>
+              <p style={{ fontSize: 13, color: 'var(--mid)', margin: '4px 0 12px' }}>Shown across the top of the shop.</p>
+              <textarea className="tracking-input" style={{ width: '100%' }} rows={2} value={settings.announcement || ''} onChange={e => setSettings(s => ({ ...s, announcement: e.target.value }))} />
+              <button className="admin-action-btn" style={{ background: 'var(--red)', color: '#fff', marginTop: 12 }} onClick={saveSettings}>Save banner</button>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 12, padding: 20 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--dark)' }}>Featured on the homepage</h3>
+              <p style={{ fontSize: 13, color: 'var(--mid)', margin: '4px 0 12px' }}>Pick products to fan out in the hero. If fewer than 3 are featured, the first coffees are shown.</p>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {catalog.map(p => (
+                  <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: 'var(--dark)' }}>
+                    <input type="checkbox" checked={!!p.featured} onChange={() => toggleFeatured(p)} />
+                    <span>{p.name}</span>
+                    <span className="td-email" style={{ marginLeft: 'auto', textTransform: 'capitalize' }}>{p.category}</span>
+                  </label>
+                ))}
+                {catalog.length === 0 && <span className="td-email">No products yet</span>}
+              </div>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e4e7ec', borderRadius: 12, padding: 20 }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: 16, fontWeight: 700, color: 'var(--dark)' }}>Promo codes</h3>
+              <p style={{ fontSize: 13, color: 'var(--mid)', margin: '4px 0 12px' }}>Create and manage discount codes.</p>
+              <button className="admin-action-btn" onClick={() => setView('promos')}>Go to Promo Codes →</button>
             </div>
           </div>
         )}

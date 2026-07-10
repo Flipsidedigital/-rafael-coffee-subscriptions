@@ -41,6 +41,7 @@ const SEED = [
 module.exports = async function ensureShopProducts() {
   try {
     await db.query(CREATE);
+    await db.query('ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE');
     const { rows } = await db.query('SELECT COUNT(*) FROM shop_products');
     if (parseInt(rows[0].count, 10) === 0) {
       for (let i = 0; i < SEED.length; i++) {

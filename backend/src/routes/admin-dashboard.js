@@ -303,7 +303,7 @@ router.get('/class-sessions/:id/bookings', adminAuth, async (req, res) => {
 });
 
 // ── Product catalogue (admin) ────────────────────────────────────────────────
-const CATALOG_FIELDS = ['category', 'name', 'sub', 'weight', 'price_cents', 'image', 'fit', 'blurb', 'origin', 'roast', 'notes', 'rating', 'reviews', 'active', 'sort'];
+const CATALOG_FIELDS = ['category', 'name', 'sub', 'weight', 'price_cents', 'image', 'fit', 'blurb', 'origin', 'roast', 'notes', 'rating', 'reviews', 'active', 'sort', 'featured'];
 
 function slugify(s) {
   return String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
@@ -373,6 +373,36 @@ router.delete('/shop-products/:id', adminAuth, async (req, res) => {
   } catch (err) {
     console.error('Catalogue delete error:', err);
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
+// ── Site settings (Marketing) ────────────────────────────────────────────────
+router.get('/site-settings', adminAuth, async (req, res) => {
+  try {
+    const r = await db.query('SELECT key, value FROM site_settings');
+    const out = {};
+    r.rows.forEach((x) => { out[x.key] = x.value; });
+    res.json(out);
+  } catch (err) {
+    console.error('admin settings error:', err);
+    res.status(500).json({ error: 'Failed to load settings' });
+  }
+});
+
+router.patch('/site-settings', adminAuth, async (req, res) => {
+  const entries = Object.entries(req.body || {});
+  if (entries.length === 0) return res.status(400).json({ error: 'Nothing to update' });
+  try {
+    for (const [key, value] of entries) {
+      await db.query(
+        'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+        [key, value == null ? null : String(value)]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('admin settings update error:', err);
+    res.status(500).json({ error: 'Failed to save settings' });
   }
 });
 
